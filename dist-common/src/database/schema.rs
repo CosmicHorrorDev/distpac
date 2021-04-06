@@ -1,7 +1,7 @@
 table! {
     packages (name) {
         name -> Text,
-        version -> Text,
+        version -> Integer,
         magnet -> Text,
     }
 }

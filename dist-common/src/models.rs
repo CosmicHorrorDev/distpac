@@ -22,25 +22,38 @@ impl Package {
 
 impl From<DbPackage> for Package {
     fn from(db_package: DbPackage) -> Self {
-        let version: Version = db_package.version.parse().unwrap();
+        let version = Version::from(db_package.version);
         Self::new(db_package.name, version, db_package.magnet)
     }
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Version {
-    pub major: u64,
-    pub minor: u64,
-    pub patch: u64,
+    pub major: u8,
+    pub minor: u8,
+    pub patch: u8,
 }
 
 impl Version {
-    pub fn new(major: u64, minor: u64, patch: u64) -> Self {
+    pub fn new(major: u8, minor: u8, patch: u8) -> Self {
         Self {
             major,
             minor,
             patch,
         }
+    }
+
+    pub fn as_i32(&self) -> i32 {
+        // Pack the 4 bytes so that it's [empty][major][minor][patch]
+        // This is done due to limitations on what types can be used as INTEGER for SQLite
+        // https://github.com/diesel-rs/diesel/issues/852
+        // Conversely the reverse is implemented with `From<i32>`
+        let mut packed = 0i32;
+        packed += (self.major as i32) << 16;
+        packed += (self.minor as i32) << 8;
+        packed += self.patch as i32;
+
+        packed
     }
 }
 
@@ -68,6 +81,18 @@ impl Ord for Version {
     }
 }
 
+impl From<i32> for Version {
+    fn from(packed: i32) -> Self {
+        let extract_byte = |value, shift| ((value >> shift) & 0xFF) as u8;
+
+        let major = extract_byte(packed, 16);
+        let minor = extract_byte(packed, 8);
+        let patch = extract_byte(packed, 0);
+
+        Self::new(major, minor, patch)
+    }
+}
+
 impl FromStr for Version {
     type Err = ParseVersionError;
 
@@ -80,7 +105,7 @@ impl FromStr for Version {
         }
 
         // Now parse each of the three version segments
-        let parse_u64 = |s: &str| -> Result<u64, Self::Err> {
+        let parse_u64 = |s: &str| -> Result<u8, Self::Err> {
             s.parse()
                 .map_err(|_| Self::Err::invalid_value(s.to_string()))
         };

@@ -4,6 +4,6 @@ use crate::database::schema::packages;
 #[table_name = "packages"]
 pub struct Package {
     pub name: String,
-    pub version: String,
+    pub version: i32,
     pub magnet: String,
 }

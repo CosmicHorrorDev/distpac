@@ -7,7 +7,10 @@ use dotenv::dotenv;
 
 use std::env;
 
-use crate::database::{models::Package, schema::packages};
+use crate::{
+    database::{models::Package, schema::packages},
+    models::Version,
+};
 
 pub struct DistpacDB {
     connection: SqliteConnection,
@@ -26,9 +29,9 @@ impl DistpacDB {
         Self { connection }
     }
 
-    pub fn add_package(&self, version: &str, name: &str, magnet: &str) {
+    pub fn add_package(&self, version: Version, name: &str, magnet: &str) {
         let new_package = Package {
-            version: version.to_string(),
+            version: version.as_i32(),
             name: name.to_string(),
             magnet: magnet.to_string(),
         };
