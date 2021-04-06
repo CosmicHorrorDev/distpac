@@ -25,19 +25,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "database_setup"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "diesel",
- "dotenv",
- "serde",
- "serde_json",
- "shell-escape",
- "tempfile",
-]
-
-[[package]]
 name = "diesel"
 version = "1.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -57,6 +44,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "dist-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "diesel",
+ "dotenv",
+ "serde",
+ "serde_json",
+ "shell-escape",
+ "tempfile",
 ]
 
 [[package]]
@@ -84,9 +84,9 @@ checksum = "dd25036021b0de88a0aff6b850051563c6516d0bf53f8638938edbb9de732736"
 
 [[package]]
 name = "libc"
-version = "0.2.92"
+version = "0.2.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56d855069fafbb9b344c0f962150cd2c1187975cb1c22c1522c240d8c4986714"
+checksum = "9385f66bf6105b241aa65a61cb923ef20efc665cb9f9bb50ac2f0c4b7f378d41"
 
 [[package]]
 name = "libsqlite3-sys"
