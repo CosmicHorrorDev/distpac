@@ -47,11 +47,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "dist-common"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "diesel",
+ "dotenv",
+ "serde",
+ "serde_json",
+ "shell-escape",
+ "tempfile",
+]
+
+[[package]]
 name = "dist-server"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "diesel",
+ "dist-common",
  "dotenv",
  "serde",
  "serde_json",
