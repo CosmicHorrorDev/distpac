@@ -17,11 +17,3 @@ impl ParseVersionError {
         Self::InvalidValue(value)
     }
 }
-
-#[derive(Error, Debug)]
-pub enum DatabaseError {
-    #[error("Failed connecting to package database with {0}")]
-    FailedConnnection(#[from] diesel::result::Error),
-    #[error("Failed inserting value into package database with {0}")]
-    FailedInsertion(#[from] diesel::result::Error),
-}
