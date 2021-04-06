@@ -2,10 +2,8 @@ pub mod models;
 mod schema;
 
 use diesel::prelude::*;
+use diesel::result::{ConnectionResult, QueryResult};
 use diesel::sqlite::SqliteConnection;
-use dotenv::dotenv;
-
-use std::env;
 
 use crate::{
     database::{models::Package, schema::packages},
@@ -17,19 +15,18 @@ pub struct DistpacDB {
 }
 
 impl DistpacDB {
-    // TODO: move away from dotenv to using `dirs` instead
-    // TODO: actually do proper error handling here
-    pub fn new() -> Self {
-        dotenv().ok();
+    pub fn new() -> ConnectionResult<Self> {
+        // Get the database connection url
+        let data_dir = dirs_next::data_dir().expect("Error handling is for losers");
+        let package_db = data_dir.join("package_list.db");
+        let database_url = package_db.to_str().unwrap();
 
-        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-        let connection = SqliteConnection::establish(&database_url)
-            .expect(&format!("Error connecting to {}", database_url));
-
-        Self { connection }
+        let connection = SqliteConnection::establish(&database_url)?;
+        Ok(Self { connection })
     }
 
-    pub fn add_package(&self, version: Version, name: &str, magnet: &str) {
+    // TODO: is the usize here a rowid?
+    pub fn add_package(&self, version: Version, name: &str, magnet: &str) -> QueryResult<usize> {
         let new_package = Package {
             version: version.as_i32(),
             name: name.to_string(),
@@ -39,6 +36,5 @@ impl DistpacDB {
         diesel::insert_into(packages::table)
             .values(&new_package)
             .execute(&self.connection)
-            .expect("Failed inserting package into db");
     }
 }
