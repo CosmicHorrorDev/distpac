@@ -1,8 +1,7 @@
-use anyhow::{anyhow, Error as AnyhowError, Result as AnyhowResult};
-
 use std::{cmp::Ordering, fmt, str::FromStr};
 
 use crate::database::models::Package as DbPackage;
+use crate::errors::ParseVersionError;
 
 #[derive(Debug)]
 pub struct Package {
@@ -70,23 +69,25 @@ impl Ord for Version {
 }
 
 impl FromStr for Version {
-    type Err = AnyhowError;
+    type Err = ParseVersionError;
 
-    fn from_str(s: &str) -> AnyhowResult<Self> {
-        let mut parts = s.split('.');
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parts: Vec<_> = s.split('.').collect();
 
-        let parse_u64 = |maybe_str: Option<&str>| -> AnyhowResult<u64> {
-            match maybe_str {
-                Some(s) => {
-                    let val = s.parse()?;
-                    Ok(val)
-                }
-                None => Err(anyhow!("Version missing value segment")),
-            }
+        // There should be three values
+        if parts.len() != 3 {
+            return Err(Self::Err::invalid_count(parts.len()));
+        }
+
+        // Now parse each of the three version segments
+        let parse_u64 = |s: &str| -> Result<u64, Self::Err> {
+            s.parse()
+                .map_err(|_| Self::Err::invalid_value(s.to_string()))
         };
-        let major = parse_u64(parts.next())?;
-        let minor = parse_u64(parts.next())?;
-        let patch = parse_u64(parts.next())?;
+
+        let major = parse_u64(parts[0])?;
+        let minor = parse_u64(parts[1])?;
+        let patch = parse_u64(parts[2])?;
 
         Ok(Self::new(major, minor, patch))
     }
@@ -96,8 +97,10 @@ impl FromStr for Version {
 mod tests {
     use super::*;
 
+    type TestResult<T> = Result<T, Box<dyn std::error::Error>>;
+
     #[test]
-    fn version_from_str() -> AnyhowResult<()> {
+    fn version_from_str() -> TestResult<()> {
         let good: Version = "1.2.3".parse()?;
         assert_eq!(good, Version::new(1, 2, 3));
 
@@ -123,7 +126,7 @@ mod tests {
     }
 
     #[test]
-    fn version_display() -> AnyhowResult<()> {
+    fn version_display() -> TestResult<()> {
         let version: Version = "1.2.3".parse()?;
         assert_eq!(format!("{}", version), "1.2.3");
 
