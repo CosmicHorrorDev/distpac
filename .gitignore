@@ -1,0 +1,8 @@
+# Build directory
+/target
+
+# Any test database files
+*.db
+
+# Dev environment
+.env
