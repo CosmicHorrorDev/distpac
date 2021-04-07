@@ -1,4 +1,4 @@
-use dist_common::torrent::Torrent;
+use imdl_wrapper::Torrent;
 
 use std::path::Path;
 

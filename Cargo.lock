@@ -667,7 +667,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "212d0f5754cb6769937f4501cc0e67f4f4483c8d2c3e1e922ee9edbe4ab4c7c0"
 
 [[package]]
-name = "dist-common"
+name = "dist-db"
 version = "0.1.0"
 dependencies = [
  "diesel",
@@ -685,8 +685,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "diesel",
- "dist-common",
  "dotenv",
+ "imdl-wrapper",
  "serde",
  "serde_json",
  "shell-escape",
@@ -969,6 +969,16 @@ dependencies = [
  "matches",
  "unicode-bidi",
  "unicode-normalization",
+]
+
+[[package]]
+name = "imdl-wrapper"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "shell-escape",
+ "tempfile",
 ]
 
 [[package]]
