@@ -966,7 +966,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shell-escape",
- "tempfile",
+ "thiserror",
 ]
 
 [[package]]

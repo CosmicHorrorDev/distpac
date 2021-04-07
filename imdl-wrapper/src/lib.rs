@@ -1,18 +1,9 @@
-use serde::Deserialize;
-use tempfile::tempdir;
+use std::path::{Path, PathBuf};
 
-use std::{
-    borrow::Cow,
-    path::{Path, PathBuf},
-    process::{Command, Stdio},
-};
+use crate::error::TorrentError;
 
-// TODO: configure output path for torrent file
-
-#[derive(Deserialize)]
-struct TorrentInfo {
-    info_hash: String,
-}
+mod error;
+mod utils;
 
 #[derive(Debug)]
 pub struct Torrent {
@@ -30,63 +21,17 @@ impl Torrent {
         }
     }
 
-    pub fn create(path: &Path) -> Self {
-        let output_dir = tempdir().unwrap();
-
-        Self::create_at(path, output_dir.path())
-    }
-
-    pub fn create_at(path: &Path, dst_dir: &Path) -> Self {
-        assert!(path.exists());
-
-        let torrent_name = format!("{}.torrent", path.file_name().unwrap().to_str().unwrap());
+    pub fn create_at(src_path: &Path, dst_dir: &Path) -> Result<Self, TorrentError> {
+        let torrent_name = format!(
+            "{}.torrent",
+            src_path.file_name().unwrap().to_str().unwrap()
+        );
         let torrent_path = dst_dir.join(&torrent_name);
 
-        let escaped_path = shell_escape::escape(Cow::from(path.to_str().unwrap()));
-        let escaped_torrent_path = shell_escape::escape(Cow::from(torrent_path.to_str().unwrap()));
+        utils::create_torrent(src_path, dst_dir)?;
+        let magnet = utils::create_magnet_link(&torrent_path)?;
+        let info_hash = utils::get_info_hash(&torrent_path)?;
 
-        Command::new("imdl")
-            .arg("torrent")
-            .arg("create")
-            .arg("--output")
-            .arg(&*escaped_torrent_path)
-            .arg(&*escaped_path)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn()
-            .unwrap()
-            .wait()
-            .unwrap();
-
-        let magnet = String::from_utf8(
-            Command::new("imdl")
-                .arg("torrent")
-                .arg("link")
-                .arg(&*escaped_torrent_path)
-                .output()
-                .unwrap()
-                .stdout,
-        )
-        .expect("imdl returned invalid utf8")
-        .trim()
-        .to_string();
-
-        let info_hash = serde_json::from_str::<TorrentInfo>(
-            &String::from_utf8(
-                Command::new("imdl")
-                    .arg("torrent")
-                    .arg("show")
-                    .arg("--json")
-                    .arg(&*escaped_torrent_path)
-                    .output()
-                    .unwrap()
-                    .stdout,
-            )
-            .expect("imdl returned invalid utf8"),
-        )
-        .unwrap()
-        .info_hash;
-
-        Self::new(PathBuf::new(), magnet, info_hash)
+        Ok(Self::new(PathBuf::new(), magnet, info_hash))
     }
 }
