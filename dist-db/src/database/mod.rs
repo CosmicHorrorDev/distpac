@@ -6,7 +6,7 @@ use diesel::result::{ConnectionResult, QueryResult};
 use diesel::sqlite::SqliteConnection;
 
 use crate::{
-    database::{models::Package, schema::packages},
+    database::{models::DbPackage, schema::packages},
     models::Version,
 };
 
@@ -27,7 +27,7 @@ impl DistpacDB {
 
     // TODO: is the usize here a rowid?
     pub fn add_package(&self, version: Version, name: &str, magnet: &str) -> QueryResult<usize> {
-        let new_package = Package {
+        let new_package = DbPackage {
             version: version.as_i32(),
             name: name.to_string(),
             magnet: magnet.to_string(),
