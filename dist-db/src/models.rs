@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, fmt, str::FromStr};
 
-use crate::{database::models::DbPackage, errors::ParseVersionError};
+use crate::{database::models::DbPackage, error::ParseVersionError};
 
 #[derive(Debug)]
 pub struct Package {
