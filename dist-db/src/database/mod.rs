@@ -7,8 +7,10 @@ use diesel::sqlite::SqliteConnection;
 
 use crate::{
     database::{models::DbPackage, schema::packages},
-    models::Version,
+    models::Package,
 };
+
+pub type RowID = usize;
 
 pub struct DistpacDB {
     connection: SqliteConnection,
@@ -25,16 +27,9 @@ impl DistpacDB {
         Ok(Self { connection })
     }
 
-    // TODO: is the usize here a rowid?
-    pub fn add_package(&self, version: Version, name: &str, magnet: &str) -> QueryResult<usize> {
-        let new_package = DbPackage {
-            version: version.as_i32(),
-            name: name.to_string(),
-            magnet: magnet.to_string(),
-        };
-
+    pub fn add_package(&self, package: Package) -> QueryResult<RowID> {
         diesel::insert_into(packages::table)
-            .values(&new_package)
+            .values(&DbPackage::from(package))
             .execute(&self.connection)
     }
 }
