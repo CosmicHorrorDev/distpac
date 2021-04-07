@@ -2,4 +2,5 @@
 members = [
     "dist-common",
     "dist-server",
+    "named-file-server",
 ]
