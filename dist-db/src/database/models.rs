@@ -1,20 +1,20 @@
-use crate::{database::schema::packages, models::Package};
+use crate::{database::schema::packages, models::PackageEntry};
 
 #[derive(Insertable, Queryable, Debug)]
 #[table_name = "packages"]
-pub(crate) struct DbPackage {
+pub(crate) struct DbPackageEntry {
     pub(crate) name: String,
     pub(crate) version: i32,
     pub(crate) magnet: String,
 }
 
-impl From<Package> for DbPackage {
-    fn from(package: Package) -> Self {
-        let Package {
+impl From<PackageEntry> for DbPackageEntry {
+    fn from(package_entry: PackageEntry) -> Self {
+        let PackageEntry {
             name,
             version,
             magnet,
-        } = package;
+        } = package_entry;
 
         Self {
             name,

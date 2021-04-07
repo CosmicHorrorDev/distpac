@@ -6,8 +6,8 @@ use diesel::result::{ConnectionResult, QueryResult};
 use diesel::sqlite::SqliteConnection;
 
 use crate::{
-    database::{models::DbPackage, schema::packages},
-    models::Package,
+    database::{models::DbPackageEntry, schema::packages},
+    models::PackageEntry,
 };
 
 pub type RowID = usize;
@@ -27,9 +27,9 @@ impl DistpacDB {
         Ok(Self { connection })
     }
 
-    pub fn add_package(&self, package: Package) -> QueryResult<RowID> {
+    pub fn add_package(&self, package: PackageEntry) -> QueryResult<RowID> {
         diesel::insert_into(packages::table)
-            .values(&DbPackage::from(package))
+            .values(&DbPackageEntry::from(package))
             .execute(&self.connection)
     }
 }

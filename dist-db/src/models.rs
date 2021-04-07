@@ -1,15 +1,15 @@
 use std::{cmp::Ordering, fmt, str::FromStr};
 
-use crate::{database::models::DbPackage, error::ParseVersionError};
+use crate::{database::models::DbPackageEntry, error::ParseVersionError};
 
 #[derive(Debug)]
-pub struct Package {
+pub struct PackageEntry {
     pub name: String,
     pub version: Version,
     pub magnet: String,
 }
 
-impl Package {
+impl PackageEntry {
     fn new(name: String, version: Version, magnet: String) -> Self {
         Self {
             name,
@@ -19,8 +19,8 @@ impl Package {
     }
 }
 
-impl From<DbPackage> for Package {
-    fn from(db_package: DbPackage) -> Self {
+impl From<DbPackageEntry> for PackageEntry {
+    fn from(db_package: DbPackageEntry) -> Self {
         let version = Version::from(db_package.version);
         Self::new(db_package.name, version, db_package.magnet)
     }

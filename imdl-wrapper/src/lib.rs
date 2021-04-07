@@ -21,7 +21,7 @@ impl Torrent {
         }
     }
 
-    pub fn create_at(src_path: &Path, dst_dir: &Path) -> Result<Self, TorrentError> {
+    pub fn create(src_path: &Path, dst_dir: &Path) -> Result<Self, TorrentError> {
         let torrent_name = format!(
             "{}.torrent",
             src_path.file_name().unwrap().to_str().unwrap()
