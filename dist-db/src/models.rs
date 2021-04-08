@@ -5,14 +5,17 @@ use crate::{database::models::DbPackageEntry, error::ParseVersionError};
 #[derive(Debug)]
 pub struct PackageEntry {
     pub name: String,
+    pub file_name: String,
     pub version: Version,
     pub magnet: String,
 }
 
 impl PackageEntry {
     fn new(name: String, version: Version, magnet: String) -> Self {
+        let file_name = format!("{}.zst", name);
         Self {
             name,
+            file_name,
             version,
             magnet,
         }
