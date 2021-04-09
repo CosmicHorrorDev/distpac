@@ -1,7 +1,8 @@
 [workspace]
 members = [
-    "dist-db",
+    "dist-client",
     "dist-package",
+    "dist-package-db",
     "dist-server",
     "imdl-wrapper",
     "named-file-server",

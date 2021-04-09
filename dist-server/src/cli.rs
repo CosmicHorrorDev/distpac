@@ -23,13 +23,13 @@ pub enum SubCommand {
 #[derive(Clap, Debug, PartialEq)]
 pub struct ComponentListing {
     /// Ignore the database component.
-    #[clap(short, long)]
+    #[clap(long)]
     pub no_database: bool,
     /// Ignore the seeder component.
-    #[clap(short, long)]
+    #[clap(long)]
     pub no_seeder: bool,
     /// Ignore the tracker component.
-    #[clap(short, long)]
+    #[clap(long)]
     pub no_tracker: bool,
 }
 

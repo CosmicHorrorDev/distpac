@@ -103,13 +103,13 @@ impl FromStr for Version {
 
         // There should be three values
         if parts.len() != 3 {
-            return Err(Self::Err::invalid_count(parts.len()));
+            return Err(Self::Err::InvalidValuesCount(parts.len()));
         }
 
         // Now parse each of the three version segments
         let parse_u64 = |s: &str| -> Result<u8, Self::Err> {
             s.parse()
-                .map_err(|_| Self::Err::invalid_value(s.to_string()))
+                .map_err(|_| Self::Err::InvalidValue(s.to_string()))
         };
 
         let major = parse_u64(parts[0])?;

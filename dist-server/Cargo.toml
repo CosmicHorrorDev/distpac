@@ -8,4 +8,5 @@ edition = "2018"
 
 [dependencies]
 clap = "3.0.0-beta.2"
+dist-package-db = { version = "0.1.0", path = "../dist-package-db" }
 imdl-wrapper = { version = "0.1.0", path = "../imdl-wrapper" }
