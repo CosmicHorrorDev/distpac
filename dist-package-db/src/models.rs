@@ -1,5 +1,3 @@
-use colored::Colorize;
-
 use std::{cmp::Ordering, fmt, str::FromStr};
 
 use crate::{database::models::DbPackageEntry, error::ParseVersionError};
@@ -7,17 +5,14 @@ use crate::{database::models::DbPackageEntry, error::ParseVersionError};
 #[derive(Debug)]
 pub struct PackageEntry {
     pub name: String,
-    pub file_name: String,
     pub version: Version,
     pub magnet: String,
 }
 
 impl PackageEntry {
     fn new(name: String, version: Version, magnet: String) -> Self {
-        let file_name = format!("{}.zst", name);
         Self {
             name,
-            file_name,
             version,
             magnet,
         }
@@ -28,16 +23,6 @@ impl From<DbPackageEntry> for PackageEntry {
     fn from(db_package: DbPackageEntry) -> Self {
         let version = Version::from(db_package.version);
         Self::new(db_package.name, version, db_package.magnet)
-    }
-}
-
-impl fmt::Display for PackageEntry {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let sytled_name = self.name.bold();
-        let styled_version = self.version.to_string().green().bold();
-        let styled_magnet = self.magnet.bold().cyan();
-
-        write!(f, "{} {} {}", sytled_name, styled_version, styled_magnet)
     }
 }
 

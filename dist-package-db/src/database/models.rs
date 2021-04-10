@@ -14,7 +14,6 @@ impl From<PackageEntry> for DbPackageEntry {
             name,
             version,
             magnet,
-            ..
         } = package_entry;
 
         Self {
