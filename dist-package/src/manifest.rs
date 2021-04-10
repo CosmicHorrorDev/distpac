@@ -3,7 +3,7 @@ use serde_yaml;
 
 use std::{convert::TryFrom, fs::File, path::Path};
 
-use crate::error::ManifestError;
+use crate::error::PackageError;
 
 #[derive(Deserialize, Debug)]
 pub struct Manifest {
@@ -12,7 +12,7 @@ pub struct Manifest {
 }
 
 impl TryFrom<&Path> for Manifest {
-    type Error = ManifestError;
+    type Error = PackageError;
 
     fn try_from(manifest_path: &Path) -> Result<Self, Self::Error> {
         let file = File::open(manifest_path)?;
