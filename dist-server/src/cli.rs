@@ -36,5 +36,5 @@ pub struct ComponentListing {
 #[derive(Clap, Debug)]
 pub struct AddPackage {
     /// Paths to all the packages to add.
-    pub packages: Vec<PathBuf>,
+    pub package_paths: Vec<PathBuf>,
 }

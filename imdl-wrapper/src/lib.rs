@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use crate::error::TorrentError;
 
-mod error;
+pub mod error;
 mod utils;
 
 #[derive(Debug)]
