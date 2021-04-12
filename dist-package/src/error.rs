@@ -17,3 +17,11 @@ pub enum PackageError {
     #[error("Error creating the torrent file")]
     Torrent(#[from] imdl_wrapper::error::TorrentError),
 }
+
+#[derive(thiserror::Error, Debug)]
+pub enum ParseVersionError {
+    #[error("Expected three values, but got {0} instead")]
+    InvalidValuesCount(usize),
+    #[error("Expected valid u16, but got {0} instead")]
+    InvalidValue(String),
+}

@@ -1,9 +1,6 @@
 use dist_package::{manifest::Manifest, AddedPackage, Torrent};
 
-use crate::{
-    database::schema::packages,
-    models::{PackageEntry, Version},
-};
+use crate::{database::schema::packages, models::PackageEntry};
 
 #[derive(Insertable, Queryable, Debug)]
 #[table_name = "packages"]
@@ -47,6 +44,6 @@ impl From<AddedPackage> for DbPackageEntry {
             ..
         } = package;
 
-        Self::new(name, version.parse::<Version>().unwrap().as_i32(), magnet)
+        Self::new(name, version.as_i32(), magnet)
     }
 }
