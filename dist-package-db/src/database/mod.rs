@@ -4,13 +4,13 @@ mod schema;
 use diesel::prelude::*;
 use diesel::result::QueryResult;
 use diesel::sqlite::SqliteConnection;
+use dist_package::AddedPackage;
 
 use std::{fs, path::Path};
 
 use crate::{
     database::{models::DbPackageEntry, schema::packages},
     error::DatabaseError,
-    models::PackageEntry,
 };
 
 embed_migrations!("./migrations");
@@ -65,7 +65,7 @@ impl DistpacDB {
         Ok(Self { connection })
     }
 
-    pub fn add_package(&self, package: PackageEntry) -> QueryResult<RowID> {
+    pub fn add_package(&self, package: AddedPackage) -> QueryResult<RowID> {
         diesel::insert_into(packages::table)
             .values(&DbPackageEntry::from(package))
             .execute(&self.connection)

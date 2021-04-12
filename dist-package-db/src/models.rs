@@ -1,3 +1,5 @@
+use dist_package::{manifest::Manifest, AddedPackage, Torrent};
+
 use std::{cmp::Ordering, fmt, str::FromStr};
 
 use crate::{database::models::DbPackageEntry, error::ParseVersionError};
@@ -26,6 +28,7 @@ impl From<DbPackageEntry> for PackageEntry {
     }
 }
 
+// TODO: this should get moved into `dist-package` instead
 #[derive(Debug, PartialEq, Eq)]
 pub struct Version {
     pub major: u8,

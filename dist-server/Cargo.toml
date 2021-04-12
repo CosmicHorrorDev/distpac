@@ -11,4 +11,5 @@ anyhow = "1.0.40"
 clap = "3.0.0-beta.2"
 dist-package = { version = "0.1.0", path = "../dist-package" }
 dist-package-db = { version = "0.1.0", path = "../dist-package-db" }
+dist-utils = { version = "0.1.0", path = "../dist-utils" }
 imdl-wrapper = { version = "0.1.0", path = "../imdl-wrapper" }

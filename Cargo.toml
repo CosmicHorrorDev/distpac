@@ -4,6 +4,7 @@ members = [
     "dist-package",
     "dist-package-db",
     "dist-server",
+    "dist-utils",
     "imdl-wrapper",
     "named-file-server",
 ]

@@ -700,7 +700,7 @@ version = "0.1.0"
 dependencies = [
  "diesel",
  "diesel_migrations",
- "dirs-next",
+ "dist-package",
  "serde",
  "serde_json",
  "shell-escape",
@@ -716,7 +716,15 @@ dependencies = [
  "clap",
  "dist-package",
  "dist-package-db",
+ "dist-utils",
  "imdl-wrapper",
+]
+
+[[package]]
+name = "dist-utils"
+version = "0.1.0"
+dependencies = [
+ "dirs-next",
 ]
 
 [[package]]

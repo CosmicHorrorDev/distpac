@@ -7,8 +7,8 @@ use crate::error::PackageError;
 
 #[derive(Deserialize, Debug)]
 pub struct Manifest {
-    name: String,
-    version: String,
+    pub name: String,
+    pub version: String,
 }
 
 impl TryFrom<&Path> for Manifest {
