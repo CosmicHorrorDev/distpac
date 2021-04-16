@@ -8,6 +8,10 @@ pub fn create_dirs() -> io::Result<()> {
     Ok(())
 }
 
+pub fn client_config_path() -> PathBuf {
+    base_dir().join("client.yaml")
+}
+
 pub fn package_db_file() -> PathBuf {
     database_dir().join("packages.db")
 }
