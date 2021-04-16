@@ -13,3 +13,5 @@ dist-package = { version = "0.1.0", path = "../dist-package" }
 dist-package-db = { version = "0.1.0", path = "../dist-package-db" }
 dist-utils = { version = "0.1.0", path = "../dist-utils" }
 imdl-wrapper = { version = "0.1.0", path = "../imdl-wrapper" }
+log = "0.4.14"
+stderrlog = "0.5.1"

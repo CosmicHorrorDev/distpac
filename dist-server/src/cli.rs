@@ -6,6 +6,12 @@ use std::path::PathBuf;
 /// seeder, and an HTTP server for serving the package database.
 #[derive(Clap, Debug)]
 pub struct Opts {
+    /// Silence all output
+    #[clap(short, long)]
+    pub quiet: bool,
+    /// Increase verbosity
+    #[clap(short, long, parse(from_occurrences))]
+    pub verbose: usize,
     #[clap(subcommand)]
     pub subcmd: SubCommand,
 }

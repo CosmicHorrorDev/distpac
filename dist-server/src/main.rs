@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Clap;
+use log::debug;
 
 use crate::{
     cli::{AddPackage, Opts, SubCommand},
@@ -12,7 +13,17 @@ mod components;
 mod packages;
 
 fn main() -> Result<()> {
-    let Opts { subcmd } = Opts::parse();
+    let Opts {
+        quiet,
+        verbose,
+        subcmd,
+    } = Opts::parse();
+    stderrlog::new()
+        .module(module_path!())
+        .quiet(quiet)
+        .verbosity(verbose)
+        .init()?;
+    debug!("{:#?}", subcmd);
 
     // Setup all the common directories
     dist_utils::create_dirs()?;

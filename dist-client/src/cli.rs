@@ -7,6 +7,12 @@ use std::path::PathBuf;
 /// and removing packages.
 #[derive(Clap, Debug)]
 pub struct Opts {
+    /// Silence all output
+    #[clap(short, long)]
+    pub quiet: bool,
+    /// Increase verbosity
+    #[clap(short, long, parse(from_occurrences))]
+    pub verbose: usize,
     #[clap(subcommand)]
     pub subcmd: SubCommand,
 }
