@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{de::Error, Deserialize, Deserializer};
 use serde_yaml;
 
 use std::{cmp::Ordering, convert::TryFrom, fmt, fs::File, path::Path, str::FromStr};
@@ -22,20 +22,24 @@ impl TryFrom<&Path> for Manifest {
     }
 }
 
-#[derive(Deserialize, Debug, PartialEq, Eq)]
-pub struct Version {
-    pub major: u8,
-    pub minor: u8,
-    pub patch: u8,
-}
+#[derive(Debug, PartialEq, Eq)]
+pub struct Version(pub u8, pub u8, pub u8);
 
 impl Version {
     pub fn new(major: u8, minor: u8, patch: u8) -> Self {
-        Self {
-            major,
-            minor,
-            patch,
-        }
+        Self(major, minor, patch)
+    }
+
+    pub fn major(&self) -> u8 {
+        self.0
+    }
+
+    pub fn minor(&self) -> u8 {
+        self.1
+    }
+
+    pub fn patch(&self) -> u8 {
+        self.2
     }
 
     pub fn as_i32(&self) -> i32 {
@@ -44,9 +48,9 @@ impl Version {
         // https://github.com/diesel-rs/diesel/issues/852
         // Conversely the reverse is implemented with `From<i32>`
         let mut packed = 0i32;
-        packed += (self.major as i32) << 16;
-        packed += (self.minor as i32) << 8;
-        packed += self.patch as i32;
+        packed += (self.major() as i32) << 16;
+        packed += (self.minor() as i32) << 8;
+        packed += self.patch() as i32;
 
         packed
     }
@@ -54,7 +58,7 @@ impl Version {
 
 impl fmt::Display for Version {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
+        write!(f, "{}.{}.{}", self.major(), self.minor(), self.patch())
     }
 }
 
@@ -66,9 +70,9 @@ impl PartialOrd for Version {
 
 impl Ord for Version {
     fn cmp(&self, other: &Self) -> Ordering {
-        match self.major.cmp(&other.major) {
-            Ordering::Equal => match self.minor.cmp(&other.minor) {
-                Ordering::Equal => self.patch.cmp(&other.patch),
+        match self.major().cmp(&other.major()) {
+            Ordering::Equal => match self.minor().cmp(&other.minor()) {
+                Ordering::Equal => self.patch().cmp(&other.patch()),
                 order => order,
             },
             order => order,
@@ -110,6 +114,16 @@ impl FromStr for Version {
         let patch = parse_u64(parts[2])?;
 
         Ok(Self::new(major, minor, patch))
+    }
+}
+
+impl<'de> Deserialize<'de> for Version {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s: String = Deserialize::deserialize(deserializer)?;
+        Self::from_str(&s).map_err(D::Error::custom)
     }
 }
 
