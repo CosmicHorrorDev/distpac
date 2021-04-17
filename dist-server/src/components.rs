@@ -1,3 +1,9 @@
+use anyhow::Result;
+use log::{debug, info};
+use sysinfo::{ProcessExt, Signal, System, SystemExt};
+
+use std::process::Command;
+
 use crate::cli::ComponentListing;
 
 pub struct ComponentManager {
@@ -5,16 +11,20 @@ pub struct ComponentManager {
 }
 
 impl ComponentManager {
-    pub fn start(&self) {
+    pub fn start(&self) -> Result<()> {
         for component in &self.components {
-            component.start();
+            component.start()?;
         }
+
+        Ok(())
     }
 
-    pub fn stop(&self) {
+    pub fn stop(&self) -> Result<()> {
         for component in &self.components {
-            component.stop();
+            component.stop()?
         }
+
+        Ok(())
     }
 }
 
@@ -37,31 +47,53 @@ impl From<ComponentListing> for ComponentManager {
 }
 
 pub trait Component {
-    fn start(&self);
+    fn start(&self) -> Result<()>;
 
-    fn stop(&self);
+    fn stop(&self) -> Result<()>;
 }
 
 pub struct Database;
 
 impl Component for Database {
-    fn start(&self) {
-        todo!();
+    fn start(&self) -> Result<()> {
+        info!("Starting database server");
+
+        Command::new("named-file-server")
+            .arg(&dist_utils::package_db_file())
+            .spawn()?;
+
+        Ok(())
     }
 
-    fn stop(&self) {
-        todo!();
+    fn stop(&self) -> Result<()> {
+        info!("Shutting down database server");
+
+        let mut system = System::new();
+        system.refresh_all();
+        // Name is truncated here and I don't feel like trying to snag it from the command path
+        let processes = system.get_process_by_name("named-file-serv");
+
+        for process in processes {
+            debug!("Shutting down PID: {}", process.pid());
+            process.kill(Signal::Interrupt);
+        }
+
+        Ok(())
     }
 }
 
 pub struct Seeder;
 
 impl Component for Seeder {
-    fn start(&self) {
+    fn start(&self) -> Result<()> {
+        info!("Starting seeder server");
+
         todo!()
     }
 
-    fn stop(&self) {
+    fn stop(&self) -> Result<()> {
+        info!("Shutting down seeder server");
+
         todo!()
     }
 }
@@ -69,11 +101,15 @@ impl Component for Seeder {
 pub struct Tracker;
 
 impl Component for Tracker {
-    fn start(&self) {
+    fn start(&self) -> Result<()> {
+        info!("Starting tracker server");
+
         todo!()
     }
 
-    fn stop(&self) {
+    fn stop(&self) -> Result<()> {
+        info!("Shutting down tracker server");
+
         todo!()
     }
 }

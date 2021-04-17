@@ -30,10 +30,10 @@ fn main() -> Result<()> {
 
     match subcmd {
         SubCommand::Start(component_listing) => {
-            ComponentManager::from(component_listing).start();
+            ComponentManager::from(component_listing).start()?;
         }
         SubCommand::Stop(component_listing) => {
-            ComponentManager::from(component_listing).stop();
+            ComponentManager::from(component_listing).stop()?;
         }
         SubCommand::Add(AddPackage { package_paths }) => {
             add_packages(package_paths)?;

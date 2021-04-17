@@ -34,18 +34,18 @@ pub enum SubCommand {
 #[derive(Clap, Debug)]
 pub struct Packages {
     /// Packages to operate on.
-    packages: Vec<PathBuf>,
+    pub packages: Vec<PathBuf>,
 }
 
 #[derive(Clap, Debug)]
 pub struct ListOpts {
     /// List only installed packages instead of all available.
     #[clap(long)]
-    installed: bool,
+    pub installed: bool,
 }
 
 #[derive(Clap, Debug)]
 pub struct SearchQuery {
     /// Terms to narrow the package search.
-    query_terms: Vec<String>,
+    pub query_terms: Vec<String>,
 }

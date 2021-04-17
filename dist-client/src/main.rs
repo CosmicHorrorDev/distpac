@@ -8,7 +8,7 @@ use log::{debug, info};
 use std::{fs::File, io};
 
 use crate::{
-    cli::{Opts, SubCommand},
+    cli::{Opts, Packages, SubCommand},
     config::Config,
 };
 
@@ -43,10 +43,10 @@ fn main() -> Result<()> {
             io::copy(&mut response_content, &mut db_file)?;
             info!("Finished syncing");
         }
-        SubCommand::Install(packages) => {
+        SubCommand::Install(Packages { packages }) => {
             todo!()
         }
-        SubCommand::Remove(packages) => {
+        SubCommand::Remove(Packages { packages }) => {
             todo!()
         }
         SubCommand::List(list_opts) => {
