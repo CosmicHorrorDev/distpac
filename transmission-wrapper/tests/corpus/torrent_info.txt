@@ -1,0 +1,44 @@
+NAME
+  Id: 1
+  Name: archlinux-2021.04.01-x86_64.iso
+  Hash: b55c37be98627d3acb1dd713a33fe1882b01ca02
+  Magnet: magnet:?xt=urn:btih:b55c37be98627d3acb1dd713a33fe1882b01ca02&dn=archlinux-2021.04.01-x86%5F64.iso
+  Labels: 
+
+TRANSFER
+  State: Idle
+  Location: /home/lovecraft/.data/distpac/torrents/data
+  Percent Done: 100%
+  ETA: 0 seconds (0 seconds)
+  Download Speed: 0 kB/s
+  Upload Speed: 0 kB/s
+  Have: 786.8 MB (786.8 MB verified)
+  Availability: 100%
+  Total size: 786.8 MB (786.8 MB wanted)
+  Downloaded: 796.8 MB
+  Uploaded: 201.4 MB
+  Ratio: 0.2
+  Corrupt DL: None
+  Peers: connected to 0, uploading to 0, downloading from 0
+
+HISTORY
+  Date added:       Sat Apr 17 22:58:41 2021
+  Date finished:    Sat Apr 17 23:03:23 2021
+  Date started:     Sun Apr 18 16:31:23 2021
+  Latest activity:  Sun Apr 18 16:06:23 2021
+  Downloading Time: 4 minutes (284 seconds)
+  Seeding Time:     7 hours (27890 seconds)
+
+ORIGINS
+  Public torrent: Yes
+  Piece Count: 1501
+  Piece Size: 512.0 KiB
+
+LIMITS & BANDWIDTH
+  Download Limit: Unlimited
+  Upload Limit: Unlimited
+  Ratio Limit: Default
+  Honors Session Limits: Yes
+  Peer limit: 50
+  Bandwidth Priority: Normal
+

@@ -8,4 +8,6 @@ edition = "2018"
 
 [dependencies]
 dist-utils = { version = "0.1.0", path = "../dist-utils" }
+getset = "0.1.1"
 sysinfo = "0.17.1"
+thiserror = "1.0.24"

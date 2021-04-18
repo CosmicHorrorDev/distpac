@@ -953,6 +953,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "getset"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24b328c01a4d71d2d8173daa93562a73ab0fe85616876f02500f53d82948c504"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "ghash"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2067,7 +2079,9 @@ name = "transmission-wrapper"
 version = "0.1.0"
 dependencies = [
  "dist-utils",
+ "getset",
  "sysinfo",
+ "thiserror",
 ]
 
 [[package]]
