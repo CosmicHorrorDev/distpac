@@ -1,4 +1,4 @@
-use dist_package::{manifest::Manifest, AddedPackage, Torrent};
+use dist_package::{AddedPackage, Torrent};
 
 use crate::{database::schema::packages, models::PackageEntry};
 
@@ -39,7 +39,8 @@ impl From<PackageEntry> for DbPackageEntry {
 impl From<AddedPackage> for DbPackageEntry {
     fn from(package: AddedPackage) -> Self {
         let AddedPackage {
-            manifest: Manifest { name, version },
+            name,
+            version,
             torrent: Torrent { magnet, .. },
             ..
         } = package;

@@ -5,7 +5,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::{error::PackageError, manifest::Manifest};
+use crate::{
+    error::PackageError,
+    manifest::{Manifest, Version},
+};
 
 pub use imdl_wrapper::Torrent;
 pub mod error;
@@ -35,7 +38,8 @@ impl PackageOpts {
 }
 
 pub struct NewPackage {
-    manifest: Manifest,
+    name: String,
+    version: Version,
     package_path: PathBuf,
 }
 
@@ -43,8 +47,14 @@ impl NewPackage {
     pub fn new(package_path: PathBuf) -> Result<Self, PackageError> {
         Self::validate(&package_path)?;
         let manifest = Manifest::try_from(package_path.join("manifest.yaml").as_path())?;
+        let name = package_path
+            .parent()
+            .unwrap()
+            .to_string_lossy()
+            .into_owned();
         Ok(Self {
-            manifest,
+            name,
+            version: manifest.version,
             package_path,
         })
     }
@@ -70,7 +80,8 @@ impl NewPackage {
 }
 
 pub struct AddedPackage {
-    pub manifest: Manifest,
+    pub name: String,
+    pub version: Version,
     pub installed_path: PathBuf,
     pub torrent: Torrent,
 }
@@ -85,7 +96,8 @@ impl AddedPackage {
         opts: &PackageOpts,
     ) -> Result<Self, PackageError> {
         let NewPackage {
-            manifest,
+            name,
+            version,
             package_path: old_package_path,
         } = new_package;
         let PackageOpts {
@@ -105,14 +117,15 @@ impl AddedPackage {
         let torrent = Torrent::create(&package_dir, &torrent_dir)?;
 
         Ok(Self {
-            manifest,
+            name,
+            version,
             installed_path: package_dir,
             torrent,
         })
     }
 
-    pub fn manifest(&self) -> &Manifest {
-        &self.manifest
+    pub fn version(&self) -> Version {
+        self.version
     }
 
     pub fn installed_path(&self) -> &Path {

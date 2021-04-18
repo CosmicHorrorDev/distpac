@@ -1,5 +1,4 @@
 use serde::{de::Error, Deserialize, Deserializer};
-use serde_yaml;
 
 use std::{cmp::Ordering, convert::TryFrom, fmt, fs::File, path::Path, str::FromStr};
 
@@ -7,7 +6,6 @@ use crate::error::{PackageError, ParseVersionError};
 
 #[derive(Deserialize, Debug)]
 pub struct Manifest {
-    pub name: String,
     pub version: Version,
 }
 
@@ -22,7 +20,7 @@ impl TryFrom<&Path> for Manifest {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Version(pub u8, pub u8, pub u8);
 
 impl Version {

@@ -58,7 +58,7 @@ impl Transmission {
     }
 
     pub fn from_running() -> Option<Self> {
-        Self::is_running().then(|| Self::empty())
+        Self::is_running().then(Self::empty)
     }
 
     pub fn stop(self) {
