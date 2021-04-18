@@ -7,4 +7,5 @@ members = [
     "dist-utils",
     "imdl-wrapper",
     "named-file-server",
+    "transmission-wrapper",
 ]

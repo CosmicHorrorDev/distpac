@@ -6,9 +6,12 @@ use std::path::PathBuf;
 
 pub fn add_packages(package_paths: Vec<PathBuf>) -> Result<()> {
     let opts = PackageOpts::new()
-        .packages_dir(dist_utils::torrent_data_dir())
-        .torrent_dir(dist_utils::torrent_file_dir());
-    let package_db = DistpacDB::connect(&dist_utils::package_db_file(), MissingDBAction::Create)?;
+        .packages_dir(dist_utils::path::torrent_data_dir())
+        .torrent_dir(dist_utils::path::torrent_file_dir());
+    let package_db = DistpacDB::connect(
+        &dist_utils::path::package_db_file(),
+        MissingDBAction::Create,
+    )?;
 
     // Validate all the new packages first
     let mut new_packages = Vec::with_capacity(package_paths.len());

@@ -1,10 +1,12 @@
 use anyhow::Result;
-use log::{debug, info};
-use sysinfo::{ProcessExt, Signal, System, SystemExt};
+use log::info;
+use transmission_wrapper::{Transmission, TransmissionOpts};
 
 use std::process::Command;
 
 use crate::cli::ComponentListing;
+
+const DATABASE_SERVER_NAME: &str = "named-file-server";
 
 pub struct ComponentManager {
     components: Vec<Box<dyn Component>>,
@@ -19,12 +21,10 @@ impl ComponentManager {
         Ok(())
     }
 
-    pub fn stop(&self) -> Result<()> {
+    pub fn stop(&self) {
         for component in &self.components {
-            component.stop()?
+            component.stop();
         }
-
-        Ok(())
     }
 }
 
@@ -49,7 +49,7 @@ impl From<ComponentListing> for ComponentManager {
 pub trait Component {
     fn start(&self) -> Result<()>;
 
-    fn stop(&self) -> Result<()>;
+    fn stop(&self);
 }
 
 pub struct Database;
@@ -58,27 +58,16 @@ impl Component for Database {
     fn start(&self) -> Result<()> {
         info!("Starting database server");
 
-        Command::new("named-file-server")
-            .arg(&dist_utils::package_db_file())
+        Command::new(DATABASE_SERVER_NAME)
+            .arg(&dist_utils::path::package_db_file())
             .spawn()?;
 
         Ok(())
     }
 
-    fn stop(&self) -> Result<()> {
+    fn stop(&self) {
         info!("Shutting down database server");
-
-        let mut system = System::new();
-        system.refresh_all();
-        // Name is truncated here and I don't feel like trying to snag it from the command path
-        let processes = system.get_process_by_name("named-file-serv");
-
-        for process in processes {
-            debug!("Shutting down PID: {}", process.pid());
-            process.kill(Signal::Interrupt);
-        }
-
-        Ok(())
+        dist_utils::misc::stop_process_by_name(DATABASE_SERVER_NAME);
     }
 }
 
@@ -87,14 +76,18 @@ pub struct Seeder;
 impl Component for Seeder {
     fn start(&self) -> Result<()> {
         info!("Starting seeder server");
+        let opts = TransmissionOpts::new().download_dir(dist_utils::path::torrent_data_dir());
+        Transmission::start(&opts)?;
 
-        todo!()
+        Ok(())
     }
 
-    fn stop(&self) -> Result<()> {
+    fn stop(&self) {
         info!("Shutting down seeder server");
-
-        todo!()
+        // This will only stop the server if it was already running
+        if let Some(daemon) = Transmission::from_running() {
+            daemon.stop();
+        }
     }
 }
 
@@ -107,7 +100,7 @@ impl Component for Tracker {
         todo!()
     }
 
-    fn stop(&self) -> Result<()> {
+    fn stop(&self) {
         info!("Shutting down tracker server");
 
         todo!()

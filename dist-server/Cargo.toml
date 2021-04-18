@@ -16,3 +16,4 @@ imdl-wrapper = { version = "0.1.0", path = "../imdl-wrapper" }
 log = "0.4.14"
 stderrlog = "0.5.1"
 sysinfo = "0.17.1"
+transmission-wrapper = { version = "0.1.0", path = "../transmission-wrapper" }

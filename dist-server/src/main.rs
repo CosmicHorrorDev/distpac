@@ -26,14 +26,14 @@ fn main() -> Result<()> {
     debug!("{:#?}", subcmd);
 
     // Setup all the common directories
-    dist_utils::create_dirs()?;
+    dist_utils::path::create_dirs()?;
 
     match subcmd {
         SubCommand::Start(component_listing) => {
             ComponentManager::from(component_listing).start()?;
         }
         SubCommand::Stop(component_listing) => {
-            ComponentManager::from(component_listing).stop()?;
+            ComponentManager::from(component_listing).stop();
         }
         SubCommand::Add(AddPackage { package_paths }) => {
             add_packages(package_paths)?;
