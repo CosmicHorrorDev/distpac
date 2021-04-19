@@ -2,6 +2,7 @@ use fs_extra::dir;
 
 use std::{
     convert::TryFrom,
+    fs,
     path::{Path, PathBuf},
 };
 
@@ -46,15 +47,11 @@ pub struct NewPackage {
 impl NewPackage {
     pub fn new(package_path: PathBuf) -> Result<Self, PackageError> {
         Self::validate(&package_path)?;
-        let manifest = Manifest::try_from(package_path.join("manifest.yaml").as_path())?;
-        let name = package_path
-            .parent()
-            .unwrap()
-            .to_string_lossy()
-            .into_owned();
+        let Manifest { name, version } =
+            Manifest::try_from(package_path.join("manifest.yaml").as_path())?;
         Ok(Self {
             name,
-            version: manifest.version,
+            version,
             package_path,
         })
     }
@@ -105,15 +102,21 @@ impl AddedPackage {
             packages_dir,
         } = opts;
 
+        // Rename the package directory based on the package name and version
+        let package_dir_name = format!("{}-{}", name, version);
+        let mut package_path = old_package_path.clone();
+        package_path.set_file_name(package_dir_name);
+        fs::rename(&old_package_path, &package_path)?;
+
         // And move the package to the installed location
         fs_extra::move_items(
-            &[&old_package_path],
+            &[&package_path],
             &packages_dir,
             &dir::CopyOptions::default(),
         )?;
 
         // Create the torrent
-        let package_dir = packages_dir.join(&old_package_path.file_name().unwrap());
+        let package_dir = packages_dir.join(&package_path.file_name().unwrap());
         let torrent = Torrent::create(&package_dir, &torrent_dir)?;
 
         Ok(Self {

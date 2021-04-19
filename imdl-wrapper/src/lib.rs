@@ -1,23 +1,30 @@
-use std::path::{Path, PathBuf};
+use std::{
+    convert::TryFrom,
+    path::{Path, PathBuf},
+};
 
-use crate::error::TorrentError;
+use crate::{error::TorrentError, utils::TorrentInfo};
 
 pub mod error;
 mod utils;
 
 #[derive(Debug)]
 pub struct Torrent {
+    pub name: String,
     pub path: PathBuf,
     pub magnet: String,
     pub info_hash: String,
+    pub size: u64,
 }
 
 impl Torrent {
-    fn new(path: PathBuf, magnet: String, info_hash: String) -> Self {
+    fn new(name: String, path: PathBuf, magnet: String, info_hash: String, size: u64) -> Self {
         Self {
+            name,
             path,
             magnet,
             info_hash,
+            size,
         }
     }
 
@@ -30,8 +37,18 @@ impl Torrent {
 
         utils::create_torrent(src_path, dst_dir)?;
         let magnet = utils::create_magnet_link(&torrent_path)?;
-        let info_hash = utils::get_info_hash(&torrent_path)?;
+        let TorrentInfo {
+            name,
+            info_hash,
+            content_size,
+        } = TorrentInfo::try_from(torrent_path.as_path())?;
 
-        Ok(Self::new(PathBuf::new(), magnet, info_hash))
+        Ok(Self::new(
+            name,
+            torrent_path,
+            magnet,
+            info_hash,
+            content_size,
+        ))
     }
 }

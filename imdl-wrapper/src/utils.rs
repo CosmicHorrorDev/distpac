@@ -2,6 +2,7 @@ use serde::Deserialize;
 
 use std::{
     borrow::Cow,
+    convert::TryFrom,
     path::Path,
     process::{Command, Stdio},
 };
@@ -9,8 +10,40 @@ use std::{
 use crate::error::TorrentError;
 
 #[derive(Deserialize)]
-struct TorrentInfo {
-    info_hash: String,
+pub(crate) struct TorrentInfo {
+    pub(crate) name: String,
+    pub(crate) info_hash: String,
+    pub(crate) content_size: u64,
+}
+
+impl TryFrom<&Path> for TorrentInfo {
+    type Error = TorrentError;
+
+    fn try_from(torrent_path: &Path) -> Result<Self, Self::Error> {
+        if !torrent_path.is_file() {
+            return Err(TorrentError::MissingTorrentFile(torrent_path.to_owned()));
+        }
+
+        let escaped_torrent_path = shell_escape::escape(Cow::from(torrent_path.to_str().unwrap()));
+
+        let info_output = Command::new("imdl")
+            .arg("torrent")
+            .arg("show")
+            .arg("--json")
+            .arg(&*escaped_torrent_path)
+            .output()
+            .unwrap();
+        if !info_output.status.success() {
+            return Err(TorrentError::FailedExtractingInfoHash);
+        }
+        let info = serde_json::from_str::<TorrentInfo>(
+            &String::from_utf8(info_output.stdout)
+                .map_err(|_| TorrentError::FailedExtractingInfoHash)?,
+        )
+        .map_err(|_| TorrentError::FailedExtractingInfoHash)?;
+
+        Ok(info)
+    }
 }
 
 pub fn create_torrent(src_path: &Path, dst_dir: &Path) -> Result<(), TorrentError> {
@@ -66,31 +99,4 @@ pub fn create_magnet_link(torrent_path: &Path) -> Result<String, TorrentError> {
     }
 
     String::from_utf8(magnet_output.stdout).map_err(|_| TorrentError::FailedGeneratingMagnent)
-}
-
-pub fn get_info_hash(torrent_path: &Path) -> Result<String, TorrentError> {
-    if !torrent_path.is_file() {
-        return Err(TorrentError::MissingTorrentFile(torrent_path.to_owned()));
-    }
-
-    let escaped_torrent_path = shell_escape::escape(Cow::from(torrent_path.to_str().unwrap()));
-
-    let info_output = Command::new("imdl")
-        .arg("torrent")
-        .arg("show")
-        .arg("--json")
-        .arg(&*escaped_torrent_path)
-        .output()
-        .unwrap();
-    if !info_output.status.success() {
-        return Err(TorrentError::FailedExtractingInfoHash);
-    }
-    let info_hash = serde_json::from_str::<TorrentInfo>(
-        &String::from_utf8(info_output.stdout)
-            .map_err(|_| TorrentError::FailedExtractingInfoHash)?,
-    )
-    .map_err(|_| TorrentError::FailedExtractingInfoHash)?
-    .info_hash;
-
-    Ok(info_hash)
 }

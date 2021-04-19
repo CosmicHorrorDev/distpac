@@ -754,6 +754,7 @@ dependencies = [
  "diesel",
  "diesel_migrations",
  "dist-package",
+ "getset",
  "serde",
  "serde_json",
  "shell-escape",

@@ -6,6 +6,7 @@ use crate::error::{PackageError, ParseVersionError};
 
 #[derive(Deserialize, Debug)]
 pub struct Manifest {
+    pub name: String,
     pub version: Version,
 }
 
