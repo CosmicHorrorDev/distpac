@@ -28,14 +28,18 @@ impl Torrent {
         }
     }
 
-    pub fn create(src_path: &Path, dst_dir: &Path) -> Result<Self, TorrentError> {
+    pub fn create(
+        src_path: &Path,
+        dst_dir: &Path,
+        announce_url: &str,
+    ) -> Result<Self, TorrentError> {
         let torrent_name = format!(
             "{}.torrent",
             src_path.file_name().unwrap().to_str().unwrap()
         );
         let torrent_path = dst_dir.join(&torrent_name);
 
-        utils::create_torrent(src_path, dst_dir)?;
+        utils::create_torrent(src_path, dst_dir, announce_url)?;
         let magnet = utils::create_magnet_link(&torrent_path)?;
         let TorrentInfo {
             name,

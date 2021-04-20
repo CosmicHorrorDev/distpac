@@ -10,6 +10,7 @@ use crate::{
 
 mod cli;
 mod components;
+mod config;
 mod packages;
 
 fn main() -> Result<()> {

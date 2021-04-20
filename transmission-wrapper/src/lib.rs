@@ -73,25 +73,12 @@ impl Transmission {
         !processes.is_empty()
     }
 
-    pub fn entries(&self) -> &[Entry] {
-        &self.entries
+    fn get_mut_by_id(&mut self, id: u64) -> Option<&mut Entry> {
+        self.entries.iter_mut().find(|entry| entry.id() == &id)
     }
 
-    // TODO: the performance on this will be terrible with a lot of entries, but should be fine for
-    // a small demo set still. Can swap out for a B-Tree or hashmap later if needed
-    fn get_mut_by_id(&mut self, id: u64) -> Option<&mut Entry> {
-        let mut maybe_index = None;
-        for (i, entry) in self.entries.iter().enumerate() {
-            if entry.id() == &id {
-                maybe_index = Some(i);
-                break;
-            }
-        }
-
-        match maybe_index {
-            Some(index) => self.entries.get_mut(index),
-            None => None,
-        }
+    pub fn get_by_name(&self, name: &str) -> Option<&Entry> {
+        self.entries.iter().find(|entry| entry.name() == name)
     }
 
     pub fn refresh(&mut self) -> Result<(), Error> {
@@ -128,7 +115,7 @@ impl Transmission {
             // Update the entry if it exists or add a new entry
             match self.get_mut_by_id(id) {
                 Some(entry) => {
-                    entry.set_downloaded(downloaded);
+                    entry.update(downloaded, status);
                 }
                 None => {
                     if percentage == "100%" {
@@ -167,13 +154,15 @@ mod tests {
         let mut transmission = Transmission::empty();
         transmission.update_entries(&entry_list)?;
 
+        let name = "archlinux-2021.04.01-x86_64.iso";
         let entry = Entry::completed(
             1,
             Bytes::from(786.8 * 1_024.0 * 1_024.0),
             Status::Seeding,
-            "archlinux-2021.04.01-x86_64.iso".to_owned(),
+            name.to_owned(),
         );
-        assert_eq!(transmission.entries(), [entry]);
+        assert_eq!(transmission.entries, [entry.clone()]);
+        assert_eq!(transmission.get_by_name(name), Some(&entry));
 
         Ok(())
     }

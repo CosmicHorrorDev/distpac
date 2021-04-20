@@ -29,9 +29,7 @@ fn main() -> Result<()> {
         .init()?;
     debug!("Subcommand: {:#?}", subcmd);
 
-    let config_path = dist_utils::path::client_config_file();
-    let config_file = std::fs::File::open(&config_path)?;
-    let config: Config = serde_yaml::from_reader(config_file)?;
+    let config = Config::try_new()?;
     debug!("Config: {:#?}", config);
 
     match subcmd {

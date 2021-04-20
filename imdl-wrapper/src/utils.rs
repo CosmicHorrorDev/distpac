@@ -46,7 +46,11 @@ impl TryFrom<&Path> for TorrentInfo {
     }
 }
 
-pub fn create_torrent(src_path: &Path, dst_dir: &Path) -> Result<(), TorrentError> {
+pub fn create_torrent(
+    src_path: &Path,
+    dst_dir: &Path,
+    announce_url: &str,
+) -> Result<(), TorrentError> {
     if !src_path.exists() {
         return Err(TorrentError::MissingInputPath(src_path.to_owned()));
     }
@@ -64,11 +68,14 @@ pub fn create_torrent(src_path: &Path, dst_dir: &Path) -> Result<(), TorrentErro
     let torrent_path = dst_dir.join(&torrent_name);
     let escaped_torrent_path = shell_escape::escape(Cow::from(torrent_path.to_str().unwrap()));
 
+    // TODO: does this stuff really need to be escaped or will rust handle that for us?
     let creation_status = Command::new("imdl")
         .arg("torrent")
         .arg("create")
         .arg("--output")
         .arg(&*escaped_torrent_path)
+        .arg("--announce")
+        .arg(announce_url)
         .arg(&*escaped_path)
         .stdout(Stdio::null())
         .stderr(Stdio::null())

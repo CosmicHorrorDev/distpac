@@ -8,6 +8,7 @@ use crate::{bytes::Bytes, constants::REMOTE_NAME, error::Error};
 pub enum Status {
     Idle,
     Seeding,
+    Stopped,
 }
 
 impl FromStr for Status {
@@ -17,6 +18,7 @@ impl FromStr for Status {
         match s {
             "Idle" => Ok(Self::Idle),
             "Seeding" => Ok(Self::Seeding),
+            "Stopped" => Ok(Self::Stopped),
             _ => Err(Self::Err::InvalidEntryFormat),
         }
     }
@@ -27,9 +29,7 @@ impl FromStr for Status {
 pub struct Entry {
     id: u64,
     size: Bytes,
-    #[getset(set = "pub")]
     downloaded: Bytes,
-    #[getset(set = "pub")]
     status: Status,
     name: String,
 }
@@ -57,6 +57,11 @@ impl Entry {
             status,
             name,
         }
+    }
+
+    pub fn update(&mut self, downloaded: Bytes, status: Status) {
+        self.downloaded = downloaded;
+        self.status = status;
     }
 }
 

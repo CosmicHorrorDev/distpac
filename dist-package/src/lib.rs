@@ -16,28 +16,6 @@ pub mod error;
 pub mod manifest;
 mod utils;
 
-#[derive(Default)]
-pub struct PackageOpts {
-    torrent_dir: PathBuf,
-    packages_dir: PathBuf,
-}
-
-impl PackageOpts {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn torrent_dir(mut self, torrent_dir: PathBuf) -> Self {
-        self.torrent_dir = torrent_dir;
-        self
-    }
-
-    pub fn packages_dir(mut self, packages_dir: PathBuf) -> Self {
-        self.packages_dir = packages_dir;
-        self
-    }
-}
-
 pub struct NewPackage {
     name: String,
     version: Version,
@@ -84,23 +62,17 @@ pub struct AddedPackage {
 }
 
 impl AddedPackage {
-    pub fn new(new_package: NewPackage) -> Result<Self, PackageError> {
-        Self::new_with_opts(new_package, &PackageOpts::default())
-    }
-
-    pub fn new_with_opts(
+    pub fn new(
         new_package: NewPackage,
-        opts: &PackageOpts,
+        packages_dir: PathBuf,
+        torrent_dir: PathBuf,
+        announce_url: &str,
     ) -> Result<Self, PackageError> {
         let NewPackage {
             name,
             version,
             package_path: old_package_path,
         } = new_package;
-        let PackageOpts {
-            torrent_dir,
-            packages_dir,
-        } = opts;
 
         // Rename the package directory based on the package name and version
         let package_dir_name = format!("{}-{}", name, version);
@@ -117,7 +89,7 @@ impl AddedPackage {
 
         // Create the torrent
         let package_dir = packages_dir.join(&package_path.file_name().unwrap());
-        let torrent = Torrent::create(&package_dir, &torrent_dir)?;
+        let torrent = Torrent::create(&package_dir, &torrent_dir, announce_url)?;
 
         Ok(Self {
             name,
