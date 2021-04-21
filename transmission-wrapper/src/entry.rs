@@ -53,6 +53,10 @@ impl Entry {
         Self::new(id, downloaded, downloaded, status, name)
     }
 
+    pub fn is_finished(&self) -> bool {
+        self.size == self.downloaded
+    }
+
     pub fn new(id: u64, size: Bytes, downloaded: Bytes, status: Status, name: String) -> Self {
         Self {
             id,
