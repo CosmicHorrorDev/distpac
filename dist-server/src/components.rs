@@ -1,6 +1,5 @@
 use anyhow::Result;
 use log::info;
-use transmission_wrapper::{Transmission, TransmissionOpts};
 
 use std::process::Command;
 
@@ -35,9 +34,6 @@ impl From<ComponentListing> for ComponentManager {
         if !listing.no_database {
             components.push(Box::new(Database));
         }
-        if !listing.no_seeder {
-            components.push(Box::new(Seeder));
-        }
         if !listing.no_tracker {
             components.push(Box::new(Tracker));
         }
@@ -68,26 +64,6 @@ impl Component for Database {
     fn stop(&self) {
         info!("Shutting down database server");
         dist_utils::misc::stop_process_by_name(DATABASE_SERVER_NAME);
-    }
-}
-
-pub struct Seeder;
-
-impl Component for Seeder {
-    fn start(&self) -> Result<()> {
-        info!("Starting seeder server");
-        let opts = TransmissionOpts::new().download_dir(dist_utils::path::torrent_data_dir());
-        Transmission::start(&opts)?;
-
-        Ok(())
-    }
-
-    fn stop(&self) {
-        info!("Shutting down seeder server");
-        // This will only stop the server if it was already running
-        if let Some(daemon) = Transmission::from_running() {
-            daemon.stop();
-        }
     }
 }
 

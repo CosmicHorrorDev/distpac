@@ -54,6 +54,7 @@ impl NewPackage {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct AddedPackage {
     pub name: String,
     pub version: Version,

@@ -8,7 +8,7 @@ use crate::{error::TorrentError, utils::TorrentInfo};
 pub mod error;
 mod utils;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Torrent {
     pub name: String,
     pub path: PathBuf,

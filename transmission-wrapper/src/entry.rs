@@ -6,9 +6,11 @@ use crate::{bytes::Bytes, constants::REMOTE_NAME, error::Error};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Status {
+    Downloading,
     Idle,
     Seeding,
     Stopped,
+    UpAndDown,
 }
 
 impl FromStr for Status {
@@ -16,9 +18,11 @@ impl FromStr for Status {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "Downloading" => Ok(Self::Downloading),
             "Idle" => Ok(Self::Idle),
             "Seeding" => Ok(Self::Seeding),
             "Stopped" => Ok(Self::Stopped),
+            "Up & Down" => Ok(Self::UpAndDown),
             _ => Err(Self::Err::InvalidEntryFormat),
         }
     }

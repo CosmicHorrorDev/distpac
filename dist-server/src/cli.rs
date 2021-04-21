@@ -31,9 +31,6 @@ pub struct ComponentListing {
     /// Ignore the database component.
     #[clap(long)]
     pub no_database: bool,
-    /// Ignore the seeder component.
-    #[clap(long)]
-    pub no_seeder: bool,
     /// Ignore the tracker component.
     #[clap(long)]
     pub no_tracker: bool,

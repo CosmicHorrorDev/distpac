@@ -1,7 +1,11 @@
 use dist_utils::misc::stop_process_by_name;
 use sysinfo::{System, SystemExt};
 
-use std::{path::PathBuf, process::Command};
+use std::{
+    io,
+    path::{Path, PathBuf},
+    process::{Command, Stdio},
+};
 
 use crate::{
     constants::{DAEMON_NAME, REMOTE_NAME},
@@ -73,6 +77,32 @@ impl Transmission {
         !processes.is_empty()
     }
 
+    pub fn seed_local_torrent(&self, torrent_file: &Path) -> io::Result<()> {
+        // `transmission-remote --torrent torrent_path --add torrent_path --start --verify`
+        Command::new(REMOTE_NAME)
+            .arg("--torrent")
+            .arg(torrent_file)
+            .arg("--add")
+            .arg(torrent_file)
+            .arg("--start")
+            .arg("--verify")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()?;
+        Ok(())
+    }
+
+    pub fn download_torrent(&self, magnet: &str) -> io::Result<()> {
+        // `transmission-remote --add magnet_link`
+        Command::new(REMOTE_NAME)
+            .arg("--add")
+            .arg(magnet)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()?;
+        Ok(())
+    }
+
     fn get_mut_by_id(&mut self, id: u64) -> Option<&mut Entry> {
         self.entries.iter_mut().find(|entry| entry.id() == &id)
     }
@@ -90,27 +120,33 @@ impl Transmission {
 
     fn update_entries(&mut self, s: &str) -> Result<(), Error> {
         for line in s.lines().skip(1) {
-            let line = line.trim();
-            if line.starts_with("Sum:") {
+            if line.trim().starts_with("Sum:") {
                 break;
             }
 
             // Parse info for each entry
-            let mut pieces = line.split_whitespace();
-            let id = pieces
-                .next()
-                .ok_or(Error::InvalidEntryFormat)?
-                .parse()
-                .map_err(|_| Error::InvalidEntryFormat)?;
-            let percentage = pieces.next().ok_or(Error::InvalidEntryFormat)?;
-            let downloaded = {
-                let downloaded_prefix = pieces.next().ok_or(Error::InvalidEntryFormat)?;
-                let downloaded_suffix = pieces.next().ok_or(Error::InvalidEntryFormat)?;
-                format!("{} {}", downloaded_prefix, downloaded_suffix).parse()?
-            };
-            let mut pieces = pieces.skip(4);
-            let status = pieces.next().ok_or(Error::InvalidEntryFormat)?.parse()?;
-            let name = pieces.next().ok_or(Error::InvalidEntryFormat)?;
+            // Each portion is separated by 2 spaces but can have spaces internally
+            let pieces: Vec<_> = line
+                .split("  ")
+                .filter_map(|piece| {
+                    let piece = piece.trim();
+                    if piece.is_empty() {
+                        None
+                    } else {
+                        Some(piece)
+                    }
+                })
+                .collect();
+
+            if pieces.len() != 9 {
+                return Err(Error::InvalidEntryFormat);
+            }
+
+            let id = pieces[0].parse().map_err(|_| Error::InvalidEntryFormat)?;
+            let percentage = pieces[1];
+            let downloaded = pieces[2].parse()?;
+            let status = pieces[7].parse()?;
+            let name = pieces[8];
 
             // Update the entry if it exists or add a new entry
             match self.get_mut_by_id(id) {

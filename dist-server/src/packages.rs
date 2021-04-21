@@ -1,6 +1,7 @@
 use anyhow::Result;
 use dist_package::{AddedPackage, NewPackage};
 use dist_package_db::database::{DistpacDB, MissingDBAction};
+use transmission_wrapper::{Transmission, TransmissionOpts};
 
 use std::path::PathBuf;
 
@@ -30,12 +31,14 @@ pub fn add_packages(package_paths: Vec<PathBuf>) -> Result<()> {
         )?);
     }
 
-    // And to the database
+    // then add each package to the database and start seeding them
+    let transmission = Transmission::start(
+        &TransmissionOpts::new().download_dir(dist_utils::path::torrent_data_dir()),
+    )?;
     for added_package in added_packages.into_iter() {
+        transmission.seed_local_torrent(&added_package.torrent.path)?;
         package_db.add_package(added_package)?;
     }
-
-    // TODO: seed the torrent and add it to the tracker
 
     Ok(())
 }
