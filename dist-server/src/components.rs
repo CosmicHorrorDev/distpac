@@ -6,6 +6,7 @@ use std::process::Command;
 use crate::cli::ComponentListing;
 
 const DATABASE_SERVER_NAME: &str = "named-file-server";
+const TRACKER_SERVER_NAME: &str = "opentracker";
 
 pub struct ComponentManager {
     components: Vec<Box<dyn Component>>,
@@ -53,11 +54,9 @@ pub struct Database;
 impl Component for Database {
     fn start(&self) -> Result<()> {
         info!("Starting database server");
-
         Command::new(DATABASE_SERVER_NAME)
             .arg(&dist_utils::path::package_db_file())
             .spawn()?;
-
         Ok(())
     }
 
@@ -72,13 +71,12 @@ pub struct Tracker;
 impl Component for Tracker {
     fn start(&self) -> Result<()> {
         info!("Starting tracker server");
-
-        todo!()
+        Command::new(TRACKER_SERVER_NAME).spawn()?;
+        Ok(())
     }
 
     fn stop(&self) {
         info!("Shutting down tracker server");
-
-        todo!()
+        dist_utils::misc::stop_process_by_name(TRACKER_SERVER_NAME);
     }
 }
