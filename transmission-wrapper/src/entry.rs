@@ -160,7 +160,7 @@ mod tests {
         let torrent_info = fs::read_to_string(&sample_file)?;
         let entry: Entry = torrent_info.parse()?;
 
-        let size = Bytes::from(786.8 * 1_024.0 * 1_024.0);
+        let size = Bytes::from(786.8 * 1_000_000.0);
         assert_eq!(
             entry,
             Entry::completed(

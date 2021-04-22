@@ -29,10 +29,10 @@ impl FromStr for Bytes {
             .parse()
             .map_err(|_| Self::Err::InvalidByteFormat)?;
         let modifier = match pieces.next().unwrap_or("B") {
-            "B" => 1.0,
-            "kB" => 1_024.0,
-            "MB" => 1_024.0 * 1_024.0,
-            "GB" => 1_024.0 * 1_024.0,
+            "B" => 1e1,
+            "kB" => 1e3,
+            "MB" => 1e6,
+            "GB" => 1e9,
             _ => return Err(Self::Err::InvalidByteFormat),
         };
 
@@ -47,7 +47,7 @@ mod tests {
     #[test]
     fn parsing() -> Result<(), Error> {
         let bytes: Bytes = "786.8 MB".parse()?;
-        assert_eq!(bytes, Bytes(786.8 * 1_024.0 * 1_024.0));
+        assert_eq!(bytes, Bytes(786.8 * 1_000_000.0));
 
         Ok(())
     }

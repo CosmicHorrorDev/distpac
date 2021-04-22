@@ -216,7 +216,7 @@ mod tests {
         let name = "archlinux-2021.04.01-x86_64.iso";
         let entry = Entry::completed(
             1,
-            Bytes::from(786.8 * 1_024.0 * 1_024.0),
+            Bytes::from(786.8 * 1_000_000.0),
             Status::Seeding,
             name.to_owned(),
         );
