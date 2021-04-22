@@ -30,7 +30,7 @@ impl FromStr for Bytes {
             .map_err(|_| Self::Err::InvalidByteFormat)?;
         let modifier = match pieces.next().unwrap_or("B") {
             "B" => 1.0,
-            "KB" => 1_024.0,
+            "kB" => 1_024.0,
             "MB" => 1_024.0 * 1_024.0,
             "GB" => 1_024.0 * 1_024.0,
             _ => return Err(Self::Err::InvalidByteFormat),

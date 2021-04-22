@@ -5,7 +5,7 @@ use dist_package_db::{
     database::{DbQuery, DistpacDB, MissingDBAction},
     models::PackageEntry,
 };
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressStyle};
 use log::debug;
 use transmission_wrapper::{Transmission, TransmissionOpts};
 
@@ -76,7 +76,10 @@ fn main() -> Result<()> {
             transmission.download_torrent(entry.magnet())?;
 
             // Wait for the download to be done
-            let progress_bar = ProgressBar::new(*entry.size());
+            let progress_bar = ProgressBar::new(*entry.size()).with_style(
+                ProgressStyle::default_bar()
+                    .template("{wide_bar:.cyan/blue} {bytes}/{total_bytes} ({bytes_per_sec})"),
+            );
             loop {
                 transmission.refresh()?;
                 if let Some(torrent) = transmission.get_by_name(entry.torrent_name()) {
@@ -88,7 +91,7 @@ fn main() -> Result<()> {
                     progress_bar.set_position(f32::from(*torrent.downloaded()) as u64);
                 }
 
-                thread::sleep(Duration::from_millis(500));
+                thread::sleep(Duration::from_millis(200));
             }
 
             // TODO: Run the install script for the package

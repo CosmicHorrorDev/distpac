@@ -171,7 +171,10 @@ impl Transmission {
             // Update the entry if it exists or add a new entry
             match self.get_mut_by_id(id) {
                 Some(entry) => {
-                    entry.update(downloaded, status);
+                    // XXX: the original plan was to use `.update` here, but with the size being
+                    // None getting parsed as 0.0 currently there are issues with the size never
+                    // getting updated to  the correct value.
+                    *entry = Entry::from_id(id)?;
                 }
                 None => {
                     if percentage == "100%" {

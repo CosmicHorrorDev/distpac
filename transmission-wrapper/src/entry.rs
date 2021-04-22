@@ -11,6 +11,7 @@ pub enum Status {
     Seeding,
     Stopped,
     UpAndDown,
+    Verifying,
 }
 
 impl FromStr for Status {
@@ -23,6 +24,7 @@ impl FromStr for Status {
             "Seeding" => Ok(Self::Seeding),
             "Stopped" => Ok(Self::Stopped),
             "Up & Down" => Ok(Self::UpAndDown),
+            "Verifying" => Ok(Self::Verifying),
             _ => Err(Self::Err::InvalidEntryFormat),
         }
     }
@@ -110,7 +112,13 @@ impl FromStr for Entry {
                     .ok_or(Self::Err::InvalidEntryFormat)?
                     .trim();
                 info.push(downloaded);
-            } else if let Some(status) = line.strip_prefix("State: ") {
+            } else if let Some(status_str) = line.strip_prefix("State: ") {
+                // Status can have some extra junk in parentheses when it's verifying
+                let status = status_str
+                    .split('(')
+                    .next()
+                    .ok_or(Self::Err::InvalidEntryFormat)?
+                    .trim();
                 info.push(status);
             } else if let Some(name) = line.strip_prefix("Name: ") {
                 info.push(name);
@@ -118,7 +126,7 @@ impl FromStr for Entry {
         }
 
         match info.as_slice() {
-            [id_str, name_str, status, size_str, downloaded_str] => Ok(Self {
+            [id_str, name_str, status, downloaded_str, size_str] => Ok(Self {
                 id: id_str.parse().map_err(|_| Self::Err::InvalidEntryFormat)?,
                 size: if *size_str == "None" {
                     Bytes(0.0)
