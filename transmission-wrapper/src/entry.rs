@@ -54,7 +54,7 @@ impl Entry {
     }
 
     pub fn is_finished(&self) -> bool {
-        self.size == self.downloaded
+        self.size != Bytes(0.0) && self.size == self.downloaded
     }
 
     pub fn new(id: u64, size: Bytes, downloaded: Bytes, status: Status, name: String) -> Self {
@@ -120,8 +120,16 @@ impl FromStr for Entry {
         match info.as_slice() {
             [id_str, name_str, status, size_str, downloaded_str] => Ok(Self {
                 id: id_str.parse().map_err(|_| Self::Err::InvalidEntryFormat)?,
-                size: size_str.parse()?,
-                downloaded: downloaded_str.parse()?,
+                size: if *size_str == "None" {
+                    Bytes(0.0)
+                } else {
+                    size_str.parse()?
+                },
+                downloaded: if *downloaded_str == "None" {
+                    Bytes(0.0)
+                } else {
+                    downloaded_str.parse()?
+                },
                 status: status.parse()?,
                 name: name_str.to_string(),
             }),

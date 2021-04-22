@@ -28,6 +28,9 @@ pub enum SubCommand {
 
 #[derive(Clap, Debug, PartialEq)]
 pub struct ComponentListing {
+    /// Ignore the seeder component.
+    #[clap(long)]
+    pub no_seeder: bool,
     /// Ignore the database component.
     #[clap(long)]
     pub no_database: bool,

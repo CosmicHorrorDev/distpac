@@ -8,6 +8,7 @@ use std::{
 };
 
 use crate::{
+    bytes::Bytes,
     constants::{DAEMON_NAME, REMOTE_NAME},
     entry::Entry,
     error::Error,
@@ -83,12 +84,13 @@ impl Transmission {
         // `transmission-remote --torrent torrent_path --add torrent_path \
         // --verify --start --download-dir download_dir`
         let mut command = Command::new(REMOTE_NAME);
-        command.arg("--torrent");
-        command.arg(torrent_file);
-        command.arg("--add");
-        command.arg(torrent_file);
-        command.arg("--verify");
-        command.arg("--start");
+        command
+            .arg("--torrent")
+            .arg(torrent_file)
+            .arg("--add")
+            .arg(torrent_file)
+            .arg("--verify")
+            .arg("--start");
 
         if let Some(download_dir) = &self.download_dir {
             command.arg("--download-dir").arg(download_dir);
@@ -102,10 +104,15 @@ impl Transmission {
     }
 
     pub fn download_torrent(&self, magnet: &str) -> io::Result<()> {
-        // `transmission-remote --add magnet_link`
-        Command::new(REMOTE_NAME)
-            .arg("--add")
-            .arg(magnet)
+        // `transmission-remote --add magnet_link --download-dir download_dir`
+        let mut command = Command::new(REMOTE_NAME);
+        command.arg("--add").arg(magnet);
+
+        if let Some(download_dir) = &self.download_dir {
+            command.arg("--download-dir").arg(download_dir);
+        }
+
+        command
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .status()?;
@@ -152,8 +159,12 @@ impl Transmission {
             }
 
             let id = pieces[0].parse().map_err(|_| Error::InvalidEntryFormat)?;
-            let percentage = pieces[1];
-            let downloaded = pieces[2].parse()?;
+            let percentage = if pieces[1] == "n/a" { "0%" } else { pieces[1] };
+            let downloaded = if pieces[2] == "None" {
+                Bytes(0.0)
+            } else {
+                pieces[2].parse()?
+            };
             let status = pieces[7].parse()?;
             let name = pieces[8];
 

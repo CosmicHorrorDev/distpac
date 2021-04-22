@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::error::Error;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Bytes(f32);
+pub struct Bytes(pub f32);
 
 impl From<f32> for Bytes {
     fn from(amount: f32) -> Self {

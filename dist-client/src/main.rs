@@ -84,7 +84,8 @@ fn main() -> Result<()> {
                         progress_bar.finish_with_message("Finished downloading!");
                         break;
                     }
-                    progress_bar.set_length(f32::from(*torrent.downloaded()) as u64);
+                    progress_bar.set_length(f32::from(*torrent.size()) as u64);
+                    progress_bar.set_position(f32::from(*torrent.downloaded()) as u64);
                 }
 
                 thread::sleep(Duration::from_millis(500));
