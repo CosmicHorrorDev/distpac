@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::Clap;
-use log::debug;
+use log::{debug, info};
 
 use crate::{
     cli::{AddPackage, Opts, SubCommand},
@@ -27,7 +27,7 @@ fn main() -> Result<()> {
     debug!("{:#?}", subcmd);
 
     // Setup all the common directories
-    dist_utils::path::create_dirs()?;
+    dist_utils::path::create_dirs(dist_utils::Mode::Server)?;
 
     match subcmd {
         SubCommand::Start(component_listing) => {
@@ -37,6 +37,7 @@ fn main() -> Result<()> {
             ComponentManager::from(component_listing).stop();
         }
         SubCommand::Add(AddPackage { package_paths }) => {
+            info!("Adding packages: {:#?}", package_paths);
             add_packages(package_paths)?;
         }
     }

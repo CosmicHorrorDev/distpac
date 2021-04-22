@@ -11,6 +11,7 @@ use std::{fs, path::Path};
 use crate::{
     database::{models::DbPackageEntry, schema::packages},
     error::DatabaseError,
+    models::PackageEntry,
 };
 
 embed_migrations!("./migrations");
@@ -26,6 +27,18 @@ pub enum MissingDBAction {
 impl Default for MissingDBAction {
     fn default() -> Self {
         Self::RaiseError
+    }
+}
+
+#[derive(Debug)]
+pub enum DbQuery<'a> {
+    All,
+    Name(&'a str),
+}
+
+impl<'a> Default for DbQuery<'a> {
+    fn default() -> Self {
+        Self::All
     }
 }
 
@@ -69,5 +82,17 @@ impl DistpacDB {
         diesel::insert_into(packages::table)
             .values(&DbPackageEntry::from(package))
             .execute(&self.connection)
+    }
+
+    pub fn query(&self, db_query: DbQuery) -> QueryResult<Vec<PackageEntry>> {
+        let db_packages: Vec<DbPackageEntry> = match db_query {
+            DbQuery::All => packages::table.load(&self.connection),
+            DbQuery::Name(name) => packages::table
+                .filter(packages::name.eq(name))
+                .load(&self.connection),
+        }?;
+
+        let packages = db_packages.into_iter().map(PackageEntry::from).collect();
+        Ok(packages)
     }
 }

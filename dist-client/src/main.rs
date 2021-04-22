@@ -1,19 +1,28 @@
-mod cli;
-mod config;
-
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Clap;
-use log::{debug, info};
+use colored::Colorize;
+use dist_package_db::{
+    database::{DbQuery, DistpacDB, MissingDBAction},
+    models::PackageEntry,
+};
+use indicatif::ProgressBar;
+use log::debug;
+use transmission_wrapper::{Transmission, TransmissionOpts};
 
 use std::{
     fs::File,
     io::{self, BufWriter, Write},
+    thread,
+    time::Duration,
 };
 
 use crate::{
-    cli::{Opts, Packages, SubCommand},
+    cli::{ListOpts, Opts, Package, SubCommand},
     config::Config,
 };
+
+mod cli;
+mod config;
 
 fn main() -> Result<()> {
     let Opts {
@@ -29,35 +38,96 @@ fn main() -> Result<()> {
         .init()?;
     debug!("Subcommand: {:#?}", subcmd);
 
-    let config = Config::try_new()?;
+    debug!("Creating dir structure...");
+    dist_utils::path::create_dirs(dist_utils::Mode::Client)?;
+
+    let config = Config::try_new().context("Failed reading config file")?;
     debug!("Config: {:#?}", config);
 
     match subcmd {
         SubCommand::Sync => {
             // Get the latest package database
-            info!("Attempting to sync the latest package database...");
+            println!("Attempting to sync the latest package database...");
             let response = ureq::get(&format!("{}/packages.db", config.server_url)).call()?;
             let mut db_file = BufWriter::new(File::create(&dist_utils::path::package_db_file())?);
             let mut response_content = response.into_reader();
 
-            info!("Saving the file locally...");
+            println!("Saving the file locally...");
             io::copy(&mut response_content, &mut db_file)?;
             db_file.flush()?;
-            info!("Finished syncing");
+            println!("Finished syncing");
         }
-        SubCommand::Install(Packages { packages }) => {
+        SubCommand::Install(Package { name }) => {
+            // Get the entry for the package
+            let db = DistpacDB::connect(
+                &dist_utils::path::package_db_file(),
+                MissingDBAction::RaiseError,
+            )?;
+            let entries = db.query(DbQuery::Name(&name))?;
+            let entry = match entries.as_slice() {
+                [entry] => Ok(entry),
+                _ => Err(anyhow::anyhow!("No package entry found for: {}", name)),
+            }?;
+
+            // Start downloading the package
+            let mut transmission = Transmission::start(
+                TransmissionOpts::new().download_dir(dist_utils::path::torrent_data_dir()),
+            )?;
+            transmission.download_torrent(entry.magnet())?;
+
+            // Wait for the download to be done
+            let progress_bar = ProgressBar::new(*entry.size());
+            loop {
+                transmission.refresh()?;
+                if let Some(torrent) = transmission.get_by_name(entry.torrent_name()) {
+                    if torrent.is_finished() {
+                        progress_bar.finish_with_message("Finished downloading!");
+                        break;
+                    }
+                    progress_bar.set_length(f32::from(*torrent.downloaded()) as u64);
+                }
+
+                thread::sleep(Duration::from_millis(500));
+            }
+
+            // TODO: Run the install script for the package
+            // And finally run the install script
+            // let script_location =
+            todo!();
+        }
+        SubCommand::Remove(Package { name }) => {
+            // TODO: Run the uninstall script on all the packages
             todo!()
         }
-        SubCommand::Remove(Packages { packages }) => {
-            todo!()
-        }
-        SubCommand::List(list_opts) => {
-            todo!()
-        }
-        SubCommand::Search(search_query) => {
-            todo!()
+        SubCommand::List(ListOpts { installed }) => {
+            // Either reads from the full database or installed database
+            let db = if installed {
+                DistpacDB::connect(
+                    &dist_utils::path::installed_db_file(),
+                    MissingDBAction::Create,
+                )
+            } else {
+                DistpacDB::connect(
+                    &dist_utils::path::package_db_file(),
+                    MissingDBAction::RaiseError,
+                )
+            }?;
+            let packages = db.query(DbQuery::All)?;
+
+            for package in packages {
+                display_package(&package);
+            }
         }
     }
 
     Ok(())
+}
+
+fn display_package(package: &PackageEntry) {
+    println!(
+        "{}\t{}\t{}",
+        package.name().blue().bold(),
+        package.version().to_string().green().bold(),
+        pretty_bytes::converter::convert(*package.size() as f64).bold()
+    );
 }

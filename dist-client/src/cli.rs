@@ -1,7 +1,5 @@
 use clap::Clap;
 
-use std::path::PathBuf;
-
 /// Basic program for managing the distpac client. This includes operations for syncing the package
 /// listing from the server, listing, and searching from the package listing, and finally installing
 /// and removing packages.
@@ -21,20 +19,18 @@ pub struct Opts {
 pub enum SubCommand {
     /// Sync the package listing with the server.
     Sync,
-    /// Install the listed packages.
-    Install(Packages),
-    /// Remove the installed packages
-    Remove(Packages),
+    /// Install the listed package.
+    Install(Package),
+    /// Remove the installed package
+    Remove(Package),
     /// Operations related to listing packages.
     List(ListOpts),
-    /// Search the packages in the local listing.
-    Search(SearchQuery),
 }
 
 #[derive(Clap, Debug)]
-pub struct Packages {
-    /// Packages to operate on.
-    pub packages: Vec<PathBuf>,
+pub struct Package {
+    /// Package to operate on.
+    pub name: String,
 }
 
 #[derive(Clap, Debug)]
@@ -42,10 +38,4 @@ pub struct ListOpts {
     /// List only installed packages instead of all available.
     #[clap(long)]
     pub installed: bool,
-}
-
-#[derive(Clap, Debug)]
-pub struct SearchQuery {
-    /// Terms to narrow the package search.
-    pub query_terms: Vec<String>,
 }

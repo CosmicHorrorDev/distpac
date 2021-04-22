@@ -9,9 +9,14 @@ edition = "2018"
 [dependencies]
 anyhow = "1.0.40"
 clap = "3.0.0-beta.2"
+colored = "2.0.0"
+dist-package-db = { version = "0.1.0", path = "../dist-package-db" }
 dist-utils = { version = "0.1.0", path = "../dist-utils" }
+indicatif = "0.15.0"
 log = "0.4.14"
+pretty-bytes = "0.2.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8.17"
 stderrlog = "0.5.1"
+transmission-wrapper = { version = "0.1.0", path = "../transmission-wrapper" }
 ureq = "2.1.0"

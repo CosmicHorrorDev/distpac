@@ -33,7 +33,7 @@ pub fn add_packages(package_paths: Vec<PathBuf>) -> Result<()> {
 
     // then add each package to the database and start seeding them
     let transmission = Transmission::start(
-        &TransmissionOpts::new().download_dir(dist_utils::path::torrent_data_dir()),
+        TransmissionOpts::new().download_dir(dist_utils::path::torrent_data_dir()),
     )?;
     for added_package in added_packages.into_iter() {
         transmission.seed_local_torrent(&added_package.torrent.path)?;

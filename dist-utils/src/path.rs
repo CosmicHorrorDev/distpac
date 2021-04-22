@@ -1,9 +1,16 @@
 use std::{fs, io, path::PathBuf};
 
-pub fn create_dirs() -> io::Result<()> {
+use crate::Mode;
+
+pub fn create_dirs(mode: Mode) -> io::Result<()> {
     fs::create_dir_all(&database_dir())?;
-    fs::create_dir_all(&torrent_file_dir())?;
     fs::create_dir_all(&torrent_data_dir())?;
+
+    // Only the server has a separate location for torrent files. The client will just download
+    // everything into the `torrent_data_dir`
+    if let Mode::Server = mode {
+        fs::create_dir_all(&torrent_file_dir())?;
+    }
 
     Ok(())
 }
@@ -14,6 +21,10 @@ pub fn server_config_file() -> PathBuf {
 
 pub fn client_config_file() -> PathBuf {
     base_dir().join("client.yaml")
+}
+
+pub fn installed_db_file() -> PathBuf {
+    database_dir().join("installed.db")
 }
 
 pub fn package_db_file() -> PathBuf {

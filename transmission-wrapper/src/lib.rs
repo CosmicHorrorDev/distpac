@@ -37,16 +37,18 @@ impl TransmissionOpts {
 // TODO: ideally there should be a global lock so that only one of these can be created at a time
 pub struct Transmission {
     entries: Vec<Entry>,
+    download_dir: Option<PathBuf>,
 }
 
 impl Transmission {
-    fn empty() -> Self {
+    fn empty(opts: TransmissionOpts) -> Self {
         Self {
             entries: Vec::new(),
+            download_dir: opts.download_dir,
         }
     }
 
-    pub fn start(opts: &TransmissionOpts) -> Result<Self, Error> {
+    pub fn start(opts: TransmissionOpts) -> Result<Self, Error> {
         // Start the daemon if it's not already running
         if !Self::is_running() {
             let mut command = Command::new(DAEMON_NAME);
@@ -58,11 +60,11 @@ impl Transmission {
             command.spawn()?;
         }
 
-        Ok(Self::empty())
+        Ok(Self::empty(opts))
     }
 
-    pub fn from_running() -> Option<Self> {
-        Self::is_running().then(Self::empty)
+    pub fn from_running(opts: TransmissionOpts) -> Option<Self> {
+        Self::is_running().then(|| Self::empty(opts))
     }
 
     pub fn stop(self) {
@@ -78,14 +80,21 @@ impl Transmission {
     }
 
     pub fn seed_local_torrent(&self, torrent_file: &Path) -> io::Result<()> {
-        // `transmission-remote --torrent torrent_path --add torrent_path --start --verify`
-        Command::new(REMOTE_NAME)
-            .arg("--torrent")
-            .arg(torrent_file)
-            .arg("--add")
-            .arg(torrent_file)
-            .arg("--start")
-            .arg("--verify")
+        // `transmission-remote --torrent torrent_path --add torrent_path \
+        // --verify --start --download-dir download_dir`
+        let mut command = Command::new(REMOTE_NAME);
+        command.arg("--torrent");
+        command.arg(torrent_file);
+        command.arg("--add");
+        command.arg(torrent_file);
+        command.arg("--verify");
+        command.arg("--start");
+
+        if let Some(download_dir) = &self.download_dir {
+            command.arg("--download-dir").arg(download_dir);
+        }
+
+        command
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .status()?;
@@ -187,7 +196,7 @@ mod tests {
         let sample_file = Path::new("tests").join("corpus").join("entry_list.txt");
         let entry_list = fs::read_to_string(sample_file)?;
 
-        let mut transmission = Transmission::empty();
+        let mut transmission = Transmission::empty(TransmissionOpts::new());
         transmission.update_entries(&entry_list)?;
 
         let name = "archlinux-2021.04.01-x86_64.iso";
@@ -199,6 +208,8 @@ mod tests {
         );
         assert_eq!(transmission.entries, [entry.clone()]);
         assert_eq!(transmission.get_by_name(name), Some(&entry));
+
+        transmission.stop();
 
         Ok(())
     }

@@ -11,6 +11,12 @@ impl From<f32> for Bytes {
     }
 }
 
+impl From<Bytes> for f32 {
+    fn from(bytes: Bytes) -> f32 {
+        bytes.0
+    }
+}
+
 impl FromStr for Bytes {
     type Err = Error;
 
