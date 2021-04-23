@@ -12,7 +12,6 @@ use transmission_wrapper::{bytes::Bytes, Transmission, TransmissionOpts};
 use std::{
     fs::File,
     io::{self, BufWriter, Write},
-    process::{Command, Stdio},
     thread,
     time::Duration,
 };
@@ -76,6 +75,7 @@ fn main() -> Result<()> {
             transmission.download_torrent(entry.magnet())?;
 
             // Wait for the download to be done
+            let mut active = false;
             let progress_bar = ProgressBar::new(*entry.size()).with_style(
                 ProgressStyle::default_bar()
                     .template("[{wide_bar:.cyan}] {bytes}/{total_bytes} ({bytes_per_sec})")
@@ -90,6 +90,12 @@ fn main() -> Result<()> {
                     }
 
                     if *torrent.downloaded() != Bytes::zero() {
+                        // Just started the actual download so reset to display transfer speed
+                        // better
+                        if !active {
+                            progress_bar.reset();
+                            active = true;
+                        }
                         progress_bar.set_position(f32::from(*torrent.downloaded()) as u64);
                     }
                 }
@@ -97,17 +103,18 @@ fn main() -> Result<()> {
                 thread::sleep(Duration::from_millis(200));
             }
 
-            // Run the install script for the package
+            // FIXME: Permissions aren't set right for torrents so that would need to be fixed
+            // // Run the install script for the package
             println!("Installing the package...");
-            let script_location = dist_utils::path::torrent_data_dir()
-                .join(entry.torrent_name())
-                .join("scripts")
-                .join("install.sh");
-            // TODO: handle the command returning an error code
-            Command::new(script_location)
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .status()?;
+            // let script_location = dist_utils::path::torrent_data_dir()
+            //     .join(entry.torrent_name())
+            //     .join("scripts")
+            //     .join("install.sh");
+            // // TODO: handle the command returning an error code
+            // Command::new(script_location)
+            //     .stdout(Stdio::null())
+            //     .stderr(Stdio::null())
+            //     .status()?;
 
             // Finally add the entry to the installed database
             let installed_db = DistpacDB::connect(
@@ -123,6 +130,9 @@ fn main() -> Result<()> {
                 MissingDBAction::Create,
             )?;
             installed_db.remove_by_name(&name)?;
+
+            // FIXME: Permissions aren't set right for torrents so that would need to be fixed
+            // TODO: run the uninstall script
         }
         SubCommand::List(ListOpts { installed }) => {
             // Either reads from the full database or installed database
