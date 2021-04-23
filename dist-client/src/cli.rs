@@ -21,7 +21,7 @@ pub enum SubCommand {
     Sync,
     /// Install the listed package.
     Install(Package),
-    /// Remove the installed package
+    /// Remove the installed package.
     Remove(Package),
     /// Operations related to listing packages.
     List(ListOpts),

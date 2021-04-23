@@ -5,6 +5,12 @@ use crate::error::Error;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Bytes(pub f32);
 
+impl Bytes {
+    pub fn zero() -> Self {
+        Self(0.0)
+    }
+}
+
 impl From<f32> for Bytes {
     fn from(amount: f32) -> Self {
         Self(amount)

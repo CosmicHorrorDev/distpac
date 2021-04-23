@@ -30,18 +30,6 @@ impl Default for MissingDBAction {
     }
 }
 
-#[derive(Debug)]
-pub enum DbQuery<'a> {
-    All,
-    Name(&'a str),
-}
-
-impl<'a> Default for DbQuery<'a> {
-    fn default() -> Self {
-        Self::All
-    }
-}
-
 pub struct DistpacDB {
     connection: SqliteConnection,
 }
@@ -84,15 +72,33 @@ impl DistpacDB {
             .execute(&self.connection)
     }
 
-    pub fn query(&self, db_query: DbQuery) -> QueryResult<Vec<PackageEntry>> {
-        let db_packages: Vec<DbPackageEntry> = match db_query {
-            DbQuery::All => packages::table.load(&self.connection),
-            DbQuery::Name(name) => packages::table
-                .filter(packages::name.eq(name))
-                .load(&self.connection),
-        }?;
+    // TODO: Would be nice to combine this with `.add_package()`
+    pub fn add_package_entry(&self, package: PackageEntry) -> QueryResult<RowID> {
+        diesel::insert_into(packages::table)
+            .values(&DbPackageEntry::from(package))
+            .execute(&self.connection)
+    }
 
+    // TODO: this seems specific for no reason. Would be nice to generalize
+    pub fn remove_by_name(&self, name: &str) -> QueryResult<RowID> {
+        diesel::delete(packages::table.filter(packages::name.eq(name))).execute(&self.connection)
+    }
+
+    pub fn list_all(&self) -> QueryResult<Vec<PackageEntry>> {
+        let db_packages: Vec<DbPackageEntry> = packages::table.load(&self.connection)?;
         let packages = db_packages.into_iter().map(PackageEntry::from).collect();
         Ok(packages)
+    }
+
+    // TODO: this could return multiple packages with different versions. Really should sort by the
+    // version number and return the first result.
+    pub fn query(&self, name: &str) -> QueryResult<Option<PackageEntry>> {
+        let db_packages: Vec<DbPackageEntry> = packages::table
+            .filter(packages::name.eq(name))
+            .load(&self.connection)?;
+        let mut packages: Vec<_> = db_packages.into_iter().map(PackageEntry::from).collect();
+        let maybe_package = packages.drain(..).next();
+
+        Ok(maybe_package)
     }
 }

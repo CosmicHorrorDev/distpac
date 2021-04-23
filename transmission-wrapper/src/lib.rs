@@ -14,7 +14,7 @@ use crate::{
     error::Error,
 };
 
-mod bytes;
+pub mod bytes;
 mod constants;
 pub mod entry;
 pub mod error;

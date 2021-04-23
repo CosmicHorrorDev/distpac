@@ -2,16 +2,17 @@ use anyhow::{Context, Result};
 use clap::Clap;
 use colored::Colorize;
 use dist_package_db::{
-    database::{DbQuery, DistpacDB, MissingDBAction},
+    database::{DistpacDB, MissingDBAction},
     models::PackageEntry,
 };
 use indicatif::{ProgressBar, ProgressStyle};
 use log::debug;
-use transmission_wrapper::{Transmission, TransmissionOpts};
+use transmission_wrapper::{bytes::Bytes, Transmission, TransmissionOpts};
 
 use std::{
     fs::File,
     io::{self, BufWriter, Write},
+    process::{Command, Stdio},
     thread,
     time::Duration,
 };
@@ -59,17 +60,16 @@ fn main() -> Result<()> {
         }
         SubCommand::Install(Package { name }) => {
             // Get the entry for the package
-            let db = DistpacDB::connect(
+            let package_db = DistpacDB::connect(
                 &dist_utils::path::package_db_file(),
                 MissingDBAction::RaiseError,
             )?;
-            let entries = db.query(DbQuery::Name(&name))?;
-            let entry = match entries.as_slice() {
-                [entry] => Ok(entry),
-                _ => Err(anyhow::anyhow!("No package entry found for: {}", name)),
-            }?;
+            let entry = package_db
+                .query(&name)?
+                .ok_or(anyhow::anyhow!("No package entry found for: {}", name))?;
 
             // Start downloading the package
+            println!("Downloading {}...", entry.torrent_name());
             let mut transmission = Transmission::start(
                 TransmissionOpts::new().download_dir(dist_utils::path::torrent_data_dir()),
             )?;
@@ -78,7 +78,8 @@ fn main() -> Result<()> {
             // Wait for the download to be done
             let progress_bar = ProgressBar::new(*entry.size()).with_style(
                 ProgressStyle::default_bar()
-                    .template("{wide_bar:.cyan/blue} {bytes}/{total_bytes} ({bytes_per_sec})"),
+                    .template("[{wide_bar:.cyan}] {bytes}/{total_bytes} ({bytes_per_sec})")
+                    .progress_chars("=> "),
             );
             loop {
                 transmission.refresh()?;
@@ -87,21 +88,41 @@ fn main() -> Result<()> {
                         progress_bar.finish_with_message("Finished downloading!");
                         break;
                     }
-                    progress_bar.set_length(f32::from(*torrent.size()) as u64);
-                    progress_bar.set_position(f32::from(*torrent.downloaded()) as u64);
+
+                    if *torrent.downloaded() != Bytes::zero() {
+                        progress_bar.set_position(f32::from(*torrent.downloaded()) as u64);
+                    }
                 }
 
                 thread::sleep(Duration::from_millis(200));
             }
 
-            // TODO: Run the install script for the package
-            // And finally run the install script
-            // let script_location =
-            todo!();
+            // Run the install script for the package
+            println!("Installing the package...");
+            let script_location = dist_utils::path::torrent_data_dir()
+                .join(entry.torrent_name())
+                .join("scripts")
+                .join("install.sh");
+            // TODO: handle the command returning an error code
+            Command::new(script_location)
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status()?;
+
+            // Finally add the entry to the installed database
+            let installed_db = DistpacDB::connect(
+                &dist_utils::path::installed_db_file(),
+                MissingDBAction::Create,
+            )?;
+            installed_db.add_package_entry(entry)?;
         }
         SubCommand::Remove(Package { name }) => {
-            // TODO: Run the uninstall script on all the packages
-            todo!()
+            // TODO: this is done a lot. Would be nice to move it to some common code
+            let installed_db = DistpacDB::connect(
+                &dist_utils::path::installed_db_file(),
+                MissingDBAction::Create,
+            )?;
+            installed_db.remove_by_name(&name)?;
         }
         SubCommand::List(ListOpts { installed }) => {
             // Either reads from the full database or installed database
@@ -116,7 +137,7 @@ fn main() -> Result<()> {
                     MissingDBAction::RaiseError,
                 )
             }?;
-            let packages = db.query(DbQuery::All)?;
+            let packages = db.list_all()?;
 
             for package in packages {
                 display_package(&package);
